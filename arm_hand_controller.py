@@ -1,27 +1,25 @@
 #!/usr/bin/env python3.8
 
-import mediapipe as mp
+# General Python imports
 import cv2
+import mediapipe as mp
 import numpy as np
-
-# import uuid
-import os
-
-# import pandas as pd
-import time
-import threading
 from queue import Queue
-import tf
+import threading
+import time
+
+# ROS imports
 import geometry_msgs
 import moveit_msgs.msg
-
 import rospy
+import tf
+
+# Shadow Robot imports
 from sr_robot_commander.sr_hand_commander import SrHandCommander
 from sr_robot_commander.sr_arm_commander import SrArmCommander
 
 mp_drawing = mp.solutions.drawing_utils
 mp_hands = mp.solutions.hands
-mp_hands2 = mp.solutions.hands
 
 cap = cv2.VideoCapture("/dev/video0")
 cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc("M", "J", "P", "G"))
@@ -34,7 +32,7 @@ joint_list = [
     ([11, 10, 9], [10, 9, 0]),
     ([15, 14, 13], [14, 13, 0]),
     ([19, 18, 17], [18, 17, 0]),
-    ([2, 3, 4], None),
+    ([4, 3, 2], [3, 2, 0]),
 ]
 
 
@@ -75,6 +73,7 @@ def publish_move(move_queue, arm_commander):
 
 
 def get_angle(hand, joint):
+    # Get each joint position
     high_joint_x = hand.landmark[joint[0]].x
     mid_joint_x = hand.landmark[joint[1]].x
     low_joint_x = hand.landmark[joint[2]].x
@@ -85,12 +84,14 @@ def get_angle(hand, joint):
 
     high_joint_z = hand.landmark[joint[0]].z
     mid_joint_z = hand.landmark[joint[1]].z
+    low_joint_z = hand.landmark[joint[2]].z
 
-    if joint[2] == 0:
-        low_joint_z = mid_joint_z
-    else:
-        low_joint_z = hand.landmark[joint[2]].z
+    # if joint[2] == 0:
+    #     low_joint_z = mid_joint_z
+    # else:
+    #     low_joint_z = hand.landmark[joint[2]].z
 
+    # Calculate the vectors from the top to the middle and the bottom to the middle
     high_mid_vec = [
         high_joint_x - mid_joint_x,
         high_joint_y - mid_joint_y,
@@ -102,6 +103,7 @@ def get_angle(hand, joint):
         low_joint_z - mid_joint_z,
     ]
 
+    # Calculate the magnitudes of those vectors to normalise them
     high_mid_vec_mag = np.sqrt(
         high_mid_vec[0] ** 2 + high_mid_vec[1] ** 2 + high_mid_vec[2] ** 2
     )
@@ -120,26 +122,32 @@ def get_angle(hand, joint):
         low_mid_vec[2] / low_mid_vec_mag,
     ]
 
+    # Get the dot product between the two vectors
+    # Equivalent to the cosine of the angle between the two vectors
     dot = (
         high_mid_vec_normalised[0] * low_mid_vec_normalised[0]
         + high_mid_vec_normalised[1] * low_mid_vec_normalised[1]
         + high_mid_vec_normalised[2] * low_mid_vec_normalised[2]
     )
 
+    # Calculate the actual angle
     angle = 180 - np.degrees(np.arccos(dot))
 
+    # If the angle is calculated for a lower joint, clip it between 0 and 90
+    # Avoids out of bounds angles being published to the robot
     if joint[2] == 0:
         angle = np.clip((angle - 45) * 2 + 45, 0, 90)
 
     return angle
 
 
-def display_joint(image, angle, xy):
+def display_angle(image, angle, xy):
+    # Display the angle at the correct place on the image.
     cv2.putText(
         image,
         str(round(angle, 2)),
         tuple(np.multiply(xy, [cap_width, cap_height]).astype(int)),
-        cv2.FONT_HERSHEY_SIMPLEX,
+        cv2.FONT_HERSHEY_TRIPLEX,
         0.5,
         (255, 255, 255),
         2,
@@ -147,44 +155,48 @@ def display_joint(image, angle, xy):
     )
 
 
-def fingerAngles(image, results, joint_list):
+def finger_angles(image, results, joint_list):
     counter = 1
-    thing = {}
+    angle_dict = {}
 
-    # Loop through hands
+    # For each hand in the image - currently robot control only supports one hand
     for hand in results.multi_hand_landmarks:
+        # Get the position of the base of the middle finger for the x, y of the robot
         mid_finger_x = hand.landmark[mp_hands.HandLandmark.MIDDLE_FINGER_MCP].x
         mid_finger_y = hand.landmark[mp_hands.HandLandmark.MIDDLE_FINGER_MCP].y
         mid_finger_pos = (mid_finger_x, mid_finger_y)
 
-        bottom_of_hand = hand.landmark[mp_hands.HandLandmark.WRIST].y
-        bottom_of_mid_finger = hand.landmark[mp_hands.HandLandmark.MIDDLE_FINGER_MCP].y
-        norm_dist = abs(bottom_of_mid_finger - bottom_of_hand)
+        # Get the normalised distance between the base of the middle finger and the wrist for the z of the robot
+        squared_y_dist = (
+            hand.landmark[mp_hands.HandLandmark.WRIST].y
+            - hand.landmark[mp_hands.HandLandmark.MIDDLE_FINGER_MCP].y
+        ) ** 2
+        squared_x_dist = (
+            hand.landmark[mp_hands.HandLandmark.WRIST].x
+            - hand.landmark[mp_hands.HandLandmark.MIDDLE_FINGER_MCP].x
+        ) ** 2
+        norm_dist = np.sqrt(squared_y_dist + squared_x_dist)
 
-        # Loop through joint sets
+        # Loop through each finger in the joint list
         for upper_joint, lower_joint in joint_list:
+            # Get upper and lower angles to publish to robot
+            upper_angle = get_angle(hand, upper_joint)
+            lower_angle = get_angle(hand, lower_joint)
+            angle_dict[counter + 1] = lower_angle
+            angle_dict[counter] = upper_angle
+            counter += 2
+
+            # Display the angle values at the correct place on the image
             upper_display = np.array(
                 [hand.landmark[upper_joint[1]].x, hand.landmark[upper_joint[1]].y]
             )
-            upper_angle = get_angle(hand, upper_joint)
-            display_joint(image, upper_angle, upper_display)
+            lower_display = np.array(
+                [hand.landmark[lower_joint[1]].x, hand.landmark[lower_joint[1]].y]
+            )
+            display_angle(image, upper_angle, upper_display)
+            display_angle(image, lower_angle, lower_display)
 
-            thing[counter] = upper_angle
-
-            if lower_joint:
-                lower_display = np.array(
-                    [hand.landmark[lower_joint[1]].x, hand.landmark[lower_joint[1]].y]
-                )
-
-                lower_angle = get_angle(hand, lower_joint)
-
-                display_joint(image, lower_angle, lower_display)
-
-                thing[counter + 1] = lower_angle
-
-            counter += 2
-
-    return thing, image, mid_finger_pos, norm_dist
+    return angle_dict, image, mid_finger_pos, norm_dist
 
 
 def run():
@@ -194,7 +206,6 @@ def run():
     arm_commander = SrArmCommander(name="right_arm")
     arm_commander.set_pose_reference_frame("ra_base")
 
-    # arm_commander.move_to_pose_target([1, 0, 0.5, np.pi, 0, 0])
     arm_commander.move_to_named_target("ra_start")
     arm_commander.move_to_joint_value_target_unsafe(
         {"ra_wrist_3_joint": -180}, wait=True, angle_degrees=True
@@ -202,57 +213,36 @@ def run():
     rospy.sleep(3.0)
     hand_commander.move_to_named_target("open")
 
-    print(arm_commander.get_current_pose("ra_base"))
+    # print(arm_commander.get_current_pose("ra_base"))
 
-    current_pose = arm_commander.get_current_pose("ra_base")
-    curr_pos_x = current_pose.position.x
-    curr_pos_y = current_pose.position.y
-    curr_pos_z = current_pose.position.z
-    curr_or_x = current_pose.orientation.x
-    curr_or_y = current_pose.orientation.y
-    curr_or_z = current_pose.orientation.z
-    curr_or_w = current_pose.orientation.w
+    starting_pose = arm_commander.get_current_pose("ra_base")
 
-    euler = tf.transformations.euler_from_quaternion(
-        (curr_or_x, curr_or_y, curr_or_z, curr_or_w)
+    desired_pose = geometry_msgs.msg.PoseStamped()
+
+    desired_pose.pose.position.x = 0.5
+    desired_pose.pose.position.y = -0.5
+    desired_pose.pose.position.z = starting_pose.position.z
+
+    starting_orientation_euler = tf.transformations.euler_from_quaternion(
+        (
+            starting_pose.orientation.x,
+            starting_pose.orientation.y,
+            starting_pose.orientation.z,
+            starting_pose.orientation.w,
+        )
     )
-    print(euler)
 
-    # goal = [-1, -0.5, curr_pos_z, curr_or_x, curr_or_y, curr_or_z, curr_or_w]
-    # arm_commander.move_to_pose_target(goal)
+    desired_orientation = tf.transformations.quaternion_from_euler(
+        starting_orientation_euler[0], starting_orientation_euler[1], 0
+    )
 
-    goal = [0, -0.7, curr_pos_z, euler[0], euler[1], 1.5 * np.pi]
-    thing = geometry_msgs.msg.PoseStamped()
-    current_pose.position.x = 0.5
-    current_pose.position.y = -0.5
-    # new_euler = (euler[0], euler[1], 0)
-    new_quat = tf.transformations.quaternion_from_euler(euler[0], euler[1], 0)
-    print(new_quat)
-    thing.pose = current_pose
-    thing.pose.orientation.x = new_quat[0]
-    thing.pose.orientation.y = new_quat[1]
-    thing.pose.orientation.z = new_quat[2]
-    thing.pose.orientation.w = new_quat[3]
-    arm_commander.move_to_pose_value_target_unsafe(thing)
+    desired_pose.pose.orientation.x = desired_orientation[0]
+    desired_pose.pose.orientation.y = desired_orientation[1]
+    desired_pose.pose.orientation.z = desired_orientation[2]
+    desired_pose.pose.orientation.w = desired_orientation[3]
+    arm_commander.move_to_pose_value_target_unsafe(desired_pose)
 
     time.sleep(2)
-
-    # goal = [0.5, -0.7, curr_pos_z, euler[0], euler[1], 1.5 * np.pi]
-    # # thing = geometry_msgs.msg.PoseStamped()
-    # thing.pose.position.x = 0.5
-    # thing.pose.position.y = 0
-    # # thing.pose = current_pose
-    # arm_commander.move_to_pose_value_target_unsafe(thing)
-
-    # time.sleep(2)
-
-    # goal = [-0.5, -0.7, curr_pos_z, euler[0], euler[1], 1.5 * np.pi]
-    # # thing = geometry_msgs.msg.PoseStamped()
-    # thing.pose.position.x = 0.5
-    # thing.pose.position.y = 0.5
-    # thing.pose.position.z = 1
-    # # thing.pose = current_pose
-    # arm_commander.move_to_pose_value_target_unsafe(thing)
 
     flex_queue = Queue()
     move_queue = Queue()
@@ -272,16 +262,16 @@ def run():
         while cap.isOpened():
             ret, frame = cap.read()
 
-            # BGR 2 RGB
+            # Convert from BGR to RGB
             image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
-            # Flip on horizontal
+            # Flip on the horizontal axis for hand tracking and display
             image = cv2.flip(image, 1)
 
             # Set flag
             image.flags.writeable = False
 
-            # Detections
+            # Hand tracking for this frame
             results = hands.process(image)
 
             # Set flag to true
@@ -296,7 +286,7 @@ def run():
                     mp_drawing.draw_landmarks(image, hand, mp_hands.HAND_CONNECTIONS)
 
                 # Draw angles to image from joint list
-                angle_list, image, mid_finger_pos, norm_dist = fingerAngles(
+                angle_list, image, mid_finger_pos, norm_dist = finger_angles(
                     image, results, joint_list
                 )
 
@@ -314,15 +304,18 @@ def run():
                         "rh_LFJ2": angle_list[7],
                         "rh_LFJ3": angle_list[8],
                         "rh_THJ2": angle_list[9],
+                        "rh_THJ3": angle_list[10],
                     }
 
                     flex_queue.put(flex)
 
-                    thing.pose.position.x = -mid_finger_pos[1] + 1
-                    thing.pose.position.y = -mid_finger_pos[0] * 2 + 1
-                    thing.pose.position.z = 0.8 - norm_dist
-                    thing.pose.position.z = max(0.2, thing.pose.position.z)
-                    move_queue.put(thing)
+                    desired_pose.pose.position.x = -mid_finger_pos[1] + 1
+                    desired_pose.pose.position.y = -mid_finger_pos[0] * 2 + 1
+                    desired_pose.pose.position.z = 0.8 - norm_dist
+                    desired_pose.pose.position.z = max(
+                        0.2, desired_pose.pose.position.z
+                    )
+                    move_queue.put(desired_pose)
 
             # Showing the camera
             cv2.imshow("Finger Angles", image)
