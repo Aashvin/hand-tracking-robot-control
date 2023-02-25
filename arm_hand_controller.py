@@ -199,22 +199,7 @@ def finger_angles(image, results, joint_list):
     return angle_dict, image, mid_finger_pos, norm_dist
 
 
-def run():
-    rospy.init_node("right_hand_demo", anonymous=True)
-    hand_commander = SrHandCommander(name="right_hand")
-
-    arm_commander = SrArmCommander(name="right_arm")
-    arm_commander.set_pose_reference_frame("ra_base")
-
-    arm_commander.move_to_named_target("ra_start")
-    arm_commander.move_to_joint_value_target_unsafe(
-        {"ra_wrist_3_joint": -180}, wait=True, angle_degrees=True
-    )
-    rospy.sleep(3.0)
-    hand_commander.move_to_named_target("open")
-
-    # print(arm_commander.get_current_pose("ra_base"))
-
+def move_to_start_pose(arm_commander):
     starting_pose = arm_commander.get_current_pose("ra_base")
 
     desired_pose = geometry_msgs.msg.PoseStamped()
@@ -241,6 +226,27 @@ def run():
     desired_pose.pose.orientation.z = desired_orientation[2]
     desired_pose.pose.orientation.w = desired_orientation[3]
     arm_commander.move_to_pose_value_target_unsafe(desired_pose)
+
+    return desired_pose
+
+
+def run():
+    rospy.init_node("right_hand_demo", anonymous=True)
+    hand_commander = SrHandCommander(name="right_hand")
+
+    arm_commander = SrArmCommander(name="right_arm")
+    arm_commander.set_pose_reference_frame("ra_base")
+
+    arm_commander.move_to_named_target("ra_start")
+    arm_commander.move_to_joint_value_target_unsafe(
+        {"ra_wrist_3_joint": -180}, wait=True, angle_degrees=True
+    )
+    rospy.sleep(3.0)
+    hand_commander.move_to_named_target("open")
+
+    # print(arm_commander.get_current_pose("ra_base"))
+
+    desired_pose = move_to_start_pose(arm_commander)
 
     time.sleep(2)
 
@@ -311,7 +317,7 @@ def run():
 
                     desired_pose.pose.position.x = -mid_finger_pos[1] + 1
                     desired_pose.pose.position.y = -mid_finger_pos[0] * 2 + 1
-                    desired_pose.pose.position.z = 0.8 - norm_dist
+                    desired_pose.pose.position.z = 0.4 - norm_dist
                     desired_pose.pose.position.z = max(
                         0.2, desired_pose.pose.position.z
                     )
