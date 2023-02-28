@@ -24,6 +24,74 @@ class WebcamController:
             ([4, 3, 2], [3, 2, 0]),
         ]
 
+    def get_angle(self, hand, joint):
+        # Get each joint position
+        high_joint_x = hand.landmark[joint[0]].x
+        mid_joint_x = hand.landmark[joint[1]].x
+        low_joint_x = hand.landmark[joint[2]].x
+
+        high_joint_y = hand.landmark[joint[0]].y
+        mid_joint_y = hand.landmark[joint[1]].y
+        low_joint_y = hand.landmark[joint[2]].y
+
+        high_joint_z = hand.landmark[joint[0]].z
+        mid_joint_z = hand.landmark[joint[1]].z
+        low_joint_z = hand.landmark[joint[2]].z
+
+        # if joint[2] == 0:
+        #     low_joint_z = mid_joint_z
+        # else:
+        #     low_joint_z = hand.landmark[joint[2]].z
+
+        # Calculate the vectors from the top to the middle and the bottom to the middle
+        high_mid_vec = [
+            high_joint_x - mid_joint_x,
+            high_joint_y - mid_joint_y,
+            high_joint_z - mid_joint_z,
+        ]
+        low_mid_vec = [
+            low_joint_x - mid_joint_x,
+            low_joint_y - mid_joint_y,
+            low_joint_z - mid_joint_z,
+        ]
+
+        # Calculate the magnitudes of those vectors to normalise them
+        high_mid_vec_mag = np.sqrt(
+            high_mid_vec[0] ** 2 + high_mid_vec[1] ** 2 + high_mid_vec[2] ** 2
+        )
+        high_mid_vec_normalised = [
+            high_mid_vec[0] / high_mid_vec_mag,
+            high_mid_vec[1] / high_mid_vec_mag,
+            high_mid_vec[2] / high_mid_vec_mag,
+        ]
+
+        low_mid_vec_mag = np.sqrt(
+            low_mid_vec[0] ** 2 + low_mid_vec[1] ** 2 + low_mid_vec[2] ** 2
+        )
+        low_mid_vec_normalised = [
+            low_mid_vec[0] / low_mid_vec_mag,
+            low_mid_vec[1] / low_mid_vec_mag,
+            low_mid_vec[2] / low_mid_vec_mag,
+        ]
+
+        # Get the dot product between the two vectors
+        # Equivalent to the cosine of the angle between the two vectors
+        dot = (
+            high_mid_vec_normalised[0] * low_mid_vec_normalised[0]
+            + high_mid_vec_normalised[1] * low_mid_vec_normalised[1]
+            + high_mid_vec_normalised[2] * low_mid_vec_normalised[2]
+        )
+
+        # Calculate the actual angle
+        angle = 180 - np.degrees(np.arccos(dot))
+
+        # If the angle is calculated for a lower joint, clip it between 0 and 90
+        # Avoids out of bounds angles being published to the robot
+        if joint[2] == 0:
+            angle = np.clip((angle - 45) * 2 + 45, 0, 90)
+
+        return angle
+
     def display_angle(self, image, angle, xy):
         # Display the angle at the correct place on the image.
         cv2.putText(

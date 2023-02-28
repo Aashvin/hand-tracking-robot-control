@@ -26,25 +26,25 @@ class Controller:
         self.mp_hands = mp.solutions.hands
 
     def run(self):
-        rospy.init_node("robot_control", anonymous=True)
+        # rospy.init_node("robot_control", anonymous=True)
 
-        self.arm_commander.set_pose_reference_frame("ra_base")
-        self.arm_commander.move_to_named_target("ra_start")
-        self.arm_commander.move_to_joint_value_target_unsafe(
+        self.arm_controller.controller.set_pose_reference_frame("ra_base")
+        self.arm_controller.controller.move_to_named_target("ra_start")
+        self.arm_controller.controller.move_to_joint_value_target_unsafe(
             {"ra_wrist_3_joint": -180}, wait=True, angle_degrees=True
         )
         rospy.sleep(3.0)
-        self.hand_commander.move_to_named_target("open")
+        self.hand_controller.controller.move_to_named_target("open")
 
         desired_pose = self.arm_controller.move_to_start_pose()
 
         time.sleep(2)
 
-        t1 = threading.Thread(target=self.hand_controller.publish_joint())
-        t1.start()
+        hand_thread = threading.Thread(target=self.hand_controller.publish_joint)
+        hand_thread.start()
 
-        t2 = threading.Thread(target=self.arm_controller.publish_move())
-        t2.start()
+        arm_thread = threading.Thread(target=self.arm_controller.publish_move)
+        arm_thread.start()
 
         time1 = time.time()
 
@@ -76,8 +76,10 @@ class Controller:
                 # Rendering results
                 if results.multi_hand_landmarks:
                     for num, hand in enumerate(results.multi_hand_landmarks):
-                        self.webcam_controllermp_drawing.draw_landmarks(
-                            image, hand, self.webcam_controllermp_hands.HAND_CONNECTIONS
+                        self.webcam_controller.mp_drawing.draw_landmarks(
+                            image,
+                            hand,
+                            self.webcam_controller.mp_hands.HAND_CONNECTIONS,
                         )
 
                     # Draw angles to image from joint list
@@ -125,5 +127,5 @@ class Controller:
         cv2.destroyAllWindows()
         self.hand_controller.pub_queue.put("END")
         self.arm_controller.pub_queue.put("END")
-        t1.join()
-        t2.join()
+        hand_thread.join()
+        arm_thread.join()
