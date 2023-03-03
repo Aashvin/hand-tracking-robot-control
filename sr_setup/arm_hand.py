@@ -15,9 +15,11 @@ def run():
     arm = ArmController(name="right_arm")
     cam = WebcamController()
 
-    controller = Controller(hand, arm, cam)
+    controller = Controller(
+        webcam_controller=cam, hand_controller=hand, arm_controller=arm
+    )
 
-    controller.run()
+    controller.run_arm_hand()
 
 
 if __name__ == "__main__":
