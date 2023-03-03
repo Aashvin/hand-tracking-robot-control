@@ -5,6 +5,10 @@ os.system("docker start dexterous_hand_simulated")
 os.system("docker cp sr_setup.sh dexterous_hand_simulated:/home/user/sr_setup.sh")
 
 os.system(
+    'docker exec -ti --user user -w /home/user dexterous_hand_simulated /bin/bash -c "chmod +x sr_setup.sh"'
+)
+
+os.system(
     'docker exec -ti --user user -w /home/user dexterous_hand_simulated /bin/bash -c "./sr_setup.sh"'
 )
 
