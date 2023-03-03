@@ -17,7 +17,11 @@ os.system(
 )
 
 os.system(
-    'docker exec -ti --user user -w /home/user dexterous_hand_simulated /bin/bash -c "chmod +x /home/user/projects/shadow_robot/base/src/robot_control/src/scripts/run.py"'
+    'docker exec -ti --user user -w /home/user dexterous_hand_simulated /bin/bash -c "chmod +x /home/user/projects/shadow_robot/base/src/robot_control/src/scripts/hand.py"'
+)
+
+os.system(
+    'docker exec -ti --user user -w /home/user dexterous_hand_simulated /bin/bash -c "chmod +x /home/user/projects/shadow_robot/base/src/robot_control/src/scripts/arm_hand.py"'
 )
 
 os.system(
