@@ -37,25 +37,7 @@ class Controller:
             min_detection_confidence=0.7, min_tracking_confidence=0.7
         ) as hands:
             while self.webcam_controller.cap.isOpened():
-                ret, frame = self.webcam_controller.cap.read()
-
-                # Convert from BGR to RGB
-                image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-
-                # Flip on the horizontal axis for hand tracking and display
-                image = cv2.flip(image, 1)
-
-                # Set flag
-                image.flags.writeable = False
-
-                # Hand tracking for this frame
-                results = hands.process(image)
-
-                # Set flag to true
-                image.flags.writeable = True
-
-                # RGB 2 BGR
-                image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+                image, results = self.webcam_controller.read_capture(hands)
 
                 # Rendering results
                 if results.multi_hand_landmarks:

@@ -108,7 +108,7 @@ class WebcamController:
     #         cv2.LINE_AA,
     #     )
 
-    def read_capture(self):
+    def read_capture(self, hands):
         ret, frame = self.webcam_controller.cap.read()
 
         # Convert from BGR to RGB
@@ -129,7 +129,7 @@ class WebcamController:
         # RGB 2 BGR
         image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
 
-        return image
+        return image, results
 
     def draw_landmark_results(self, results, image):
         for num, hand in enumerate(results.multi_hand_landmarks):
