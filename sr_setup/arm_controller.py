@@ -1,7 +1,6 @@
 #!/usr/bin/env python3.8
 
 import numpy as np
-from queue import Queue
 
 import geometry_msgs
 import moveit_msgs.msg
@@ -9,11 +8,16 @@ import rospy
 from sr_robot_commander.sr_arm_commander import SrArmCommander
 import tf
 
+from robot_controller import RobotController
 
-class ArmController:
+
+class ArmController(RobotController):
     def __init__(self, name: str) -> None:
+        super().__init__()
         self.controller = SrArmCommander(name=name)
-        self.pub_queue = Queue()
+
+    def set_required_data(self):
+        self.required_data = 
 
     def move_to_start_pose(self):
         starting_pose = self.controller.get_current_pose("ra_base")

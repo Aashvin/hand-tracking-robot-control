@@ -24,12 +24,7 @@ class Controller:
 
         self.webcam_controller = webcam_controller
 
-        self.mp_drawing = mp.solutions.drawing_utils
-        self.mp_hands = mp.solutions.hands
-
     def run_hand(self):
-        self.hand_controller.controller.move_to_named_target("open")
-
         time.sleep(2)
 
         hand_thread = threading.Thread(target=self.hand_controller.publish_joint)
@@ -64,39 +59,23 @@ class Controller:
 
                 # Rendering results
                 if results.multi_hand_landmarks:
-                    for num, hand in enumerate(results.multi_hand_landmarks):
-                        self.webcam_controller.mp_drawing.draw_landmarks(
-                            image,
-                            hand,
-                            self.webcam_controller.mp_hands.HAND_CONNECTIONS,
-                        )
+                    self.webcam_controller.draw_landmark_results(results, image)
 
-                    # Draw angles to image from joint list
-                    (
-                        angle_list,
-                        image,
-                        mid_finger_pos,
-                        norm_dist,
-                    ) = self.webcam_controller.finger_angles(image, results)
+                    landmark_data = self.webcam_controller.get_landmark_data(
+                        image, results, self.hand_controller.required_landmarks
+                    )
+
+                    angle_dict = self.hand_controller.finger_angles(landmark_data)
+
+                    self.webcam_controller.display_angle(
+                        image, landmark_data, angle_dict
+                    )
 
                     time2 = time.time()
                     if time2 - time1 > 0.5:
                         time1 = time2
 
-                        flex = {
-                            "rh_FFJ2": angle_list[1],
-                            "rh_FFJ3": angle_list[2],
-                            "rh_MFJ2": angle_list[3],
-                            "rh_MFJ3": angle_list[4],
-                            "rh_RFJ2": angle_list[5],
-                            "rh_RFJ3": angle_list[6],
-                            "rh_LFJ2": angle_list[7],
-                            "rh_LFJ3": angle_list[8],
-                            "rh_THJ2": angle_list[9],
-                            "rh_THJ3": angle_list[10],
-                        }
-
-                        self.hand_controller.pub_queue.put(flex)
+                        self.hand_controller.data_queue.put(angle_dict)
 
                 # Showing the camera
                 cv2.imshow("Finger Angles", image)
@@ -106,7 +85,7 @@ class Controller:
 
         self.webcam_controller.cap.release()
         cv2.destroyAllWindows()
-        self.hand_controller.pub_queue.put("END")
+        self.hand_controller.data_queue.put("END")
         hand_thread.join()
 
     def run_arm_hand(self):
