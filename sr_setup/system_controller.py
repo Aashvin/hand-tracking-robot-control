@@ -25,7 +25,7 @@ class Controller:
         self.webcam_controller = webcam_controller
 
     def run_hand(self):
-        self.hand_controller.set_required_data()
+        self.hand_controller.set_required_landmarks()
         self.hand_controller.move_to_start_pose()
 
         time.sleep(2)

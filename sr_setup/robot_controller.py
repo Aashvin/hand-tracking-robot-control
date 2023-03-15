@@ -8,9 +8,9 @@ class RobotController:
         self.required_landmarks = []
         self.data_queue = Queue()
 
-    def set_required_data(self):
+    def set_required_landmarks(self):
         raise NotImplementedError(
-            "The robot controller does not have a method to set the required data."
+            "The robot controller does not have a method to set the required landmarks."
         )
 
     def move_to_start_pose(self):
