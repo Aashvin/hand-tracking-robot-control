@@ -87,23 +87,29 @@ class HandController(RobotController):
         angle_dict = {}
         for finger in range(5):
             upper_joints = {
-                dim: [landmark_data[dim][finger * 3 + i] for i in range(3)]
+                dim: [
+                    landmark_data[dim][self.required_landmarks[finger * 3 + i]]
+                    for i in range(3)
+                ]
                 for dim in ["x", "y", "z"]
             }
             lower_joints = {
                 dim: [
-                    landmark_data[dim][finger * 3 + i]
+                    landmark_data[dim][self.required_landmarks[finger * 3 + i]]
                     if i != -1
-                    else landmark_data[dim][-1]
+                    else landmark_data[dim][self.required_landmarks[-1]]
                     for i in range(-1, 2)
                 ]
                 for dim in ["x", "y", "z"]
             }
 
-            angle_dict[finger * 3] = np.clip(
+            lower_joint = self.required_landmarks[finger * 3]
+            upper_joint = self.required_landmarks[finger * 3 + 1]
+
+            angle_dict[lower_joint] = np.clip(
                 (self.calculate_angles(lower_joints) - 45) * 2 + 45, 0, 90
             )
-            angle_dict[finger * 3 + 1] = self.calculate_angles(upper_joints)
+            angle_dict[upper_joint] = self.calculate_angles(upper_joints)
 
         return angle_dict
 
@@ -117,15 +123,15 @@ class HandController(RobotController):
             if angle_dict is not None:
                 flex = {
                     "rh_FFJ2": angle_dict[HAND_LANDMARKS.INDEX_FINGER_PIP],
-                    "rh_FFJ3": angle_dict[HAND_LANDMARKS.INDEX_FINGER_MCP,],
+                    "rh_FFJ3": angle_dict[HAND_LANDMARKS.INDEX_FINGER_MCP],
                     "rh_MFJ2": angle_dict[HAND_LANDMARKS.MIDDLE_FINGER_PIP],
-                    "rh_MFJ3": angle_dict[HAND_LANDMARKS.MIDDLE_FINGER_MCP,],
+                    "rh_MFJ3": angle_dict[HAND_LANDMARKS.MIDDLE_FINGER_MCP],
                     "rh_RFJ2": angle_dict[HAND_LANDMARKS.RING_FINGER_PIP],
-                    "rh_RFJ3": angle_dict[HAND_LANDMARKS.RING_FINGER_MCP,],
+                    "rh_RFJ3": angle_dict[HAND_LANDMARKS.RING_FINGER_MCP],
                     "rh_LFJ2": angle_dict[HAND_LANDMARKS.PINKY_PIP],
-                    "rh_LFJ3": angle_dict[HAND_LANDMARKS.PINKY_MCP,],
+                    "rh_LFJ3": angle_dict[HAND_LANDMARKS.PINKY_MCP],
                     "rh_THJ2": angle_dict[HAND_LANDMARKS.THUMB_IP],
-                    "rh_THJ3": angle_dict[HAND_LANDMARKS.THUMB_MCP,],
+                    "rh_THJ3": angle_dict[HAND_LANDMARKS.THUMB_MCP],
                 }
 
                 self.controller.move_to_joint_value_target_unsafe(

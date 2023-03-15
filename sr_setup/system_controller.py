@@ -25,9 +25,12 @@ class Controller:
         self.webcam_controller = webcam_controller
 
     def run_hand(self):
+        self.hand_controller.set_required_data()
+        self.hand_controller.move_to_start_pose()
+
         time.sleep(2)
 
-        hand_thread = threading.Thread(target=self.hand_controller.publish_joint)
+        hand_thread = threading.Thread(target=self.hand_controller.publish_move)
         hand_thread.start()
 
         time1 = time.time()
@@ -44,7 +47,7 @@ class Controller:
                     self.webcam_controller.draw_landmark_results(results, image)
 
                     landmark_data = self.webcam_controller.get_landmark_data(
-                        image, results, self.hand_controller.required_landmarks
+                        results, self.hand_controller.required_landmarks
                     )
 
                     angle_dict = self.hand_controller.finger_angles(landmark_data)
