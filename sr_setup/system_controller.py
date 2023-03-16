@@ -78,10 +78,10 @@ class Controller:
         self.arm_controller.set_required_landmarks()
 
         self.arm_controller.move_to_start_pose()
-        rospy.sleep(3.0)
+        # rospy.sleep(3.0)
         self.hand_controller.move_to_start_pose()
 
-        time.sleep(2)
+        # rospy.sleep(2)
 
         hand_thread = threading.Thread(target=self.hand_controller.publish_move)
         hand_thread.start()
@@ -102,26 +102,28 @@ class Controller:
                 if results.multi_hand_landmarks:
                     self.webcam_controller.draw_landmark_results(results, image)
 
-                    hand_landmark_data = self.webcam_controller.get_landmark_data(
-                        results, self.hand_controller.required_landmarks
-                    )
-                    arm_landmark_data = self.webcam_controller.get_landmark_data(
-                        results, self.arm_controller.required_landmarks
+                    all_required_landmarks = (
+                        self.hand_controller.required_landmarks
+                        + self.arm_controller.required_landmarks
                     )
 
-                    angle_dict = self.hand_controller.finger_angles(hand_landmark_data)
-
-                    arm_position_dict = self.arm_controller.process_landmark_data(
-                        arm_landmark_data
+                    landmark_data = self.webcam_controller.get_landmark_data(
+                        results, all_required_landmarks
                     )
+
+                    angle_dict = self.hand_controller.finger_angles(landmark_data)
 
                     self.webcam_controller.display_angle(
-                        image, hand_landmark_data, angle_dict
+                        image, landmark_data, angle_dict
                     )
 
                     time2 = time.time()
                     if time2 - time1 > 0.5:
                         time1 = time2
+
+                        arm_position_dict = self.arm_controller.process_landmark_data(
+                            landmark_data
+                        )
 
                         self.hand_controller.data_queue.put(angle_dict)
                         self.arm_controller.data_queue.put(arm_position_dict)
@@ -134,7 +136,7 @@ class Controller:
 
         self.webcam_controller.cap.release()
         cv2.destroyAllWindows()
-        self.hand_controller.pub_queue.put("END")
-        self.arm_controller.pub_queue.put("END")
+        self.hand_controller.data_queue.put("END")
+        self.arm_controller.data_queue.put("END")
         hand_thread.join()
         arm_thread.join()

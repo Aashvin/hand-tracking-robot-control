@@ -29,13 +29,13 @@ class ArmController(RobotController):
         self.constraints = moveit_msgs.msg.Constraints()
         self.constraints.name = "all_constraints"
 
-        shoulder_list_constraint = moveit_msgs.msg.JointConstraint()
-        shoulder_list_constraint.joint_name = "ra_shoulder_lift_joint"
-        shoulder_list_constraint.position = np.radians(-45)
-        shoulder_list_constraint.tolerance_below = np.radians(45)
-        shoulder_list_constraint.tolerance_above = np.radians(100)
+        shoulder_lift_constraint = moveit_msgs.msg.JointConstraint()
+        shoulder_lift_constraint.joint_name = "ra_shoulder_lift_joint"
+        shoulder_lift_constraint.position = np.radians(-45)
+        shoulder_lift_constraint.tolerance_below = np.radians(45)
+        shoulder_lift_constraint.tolerance_above = np.radians(100)
 
-        self.constraints.joint_constraints = [shoulder_list_constraint]
+        self.constraints.joint_constraints = [shoulder_lift_constraint]
 
     def move_to_start_pose(self):
         self.commander.set_pose_reference_frame("ba_base")
@@ -88,31 +88,34 @@ class ArmController(RobotController):
             landmark_data["y"][HAND_LANDMARKS.WRIST]
             - landmark_data["y"][HAND_LANDMARKS.MIDDLE_FINGER_MCP]
         ) ** 2
-        norm_dist = np.sqrt(squared_x_dist * squared_y_dist)
+        norm_dist = np.sqrt(squared_x_dist + squared_y_dist)
 
         arm_position_dict = {
             "x": -mid_finger_y + 1,
             "y": -mid_finger_x * 2 + 1,
-            "z": max(0.2, 0.8 - norm_dist),
+            "z": max(0.2, 0.4 - norm_dist),
         }
 
         return arm_position_dict
 
     def publish_move(self):
         while True:
-            arm_position_dict = self.pub_queue.get()
+            arm_position_dict = self.data_queue.get()
 
             if arm_position_dict == "END":
                 return
 
             if arm_position_dict is not None:
-                desired_pose = geometry_msgs.msg.PoseStamped()
-                desired_pose.pose.orientation = self.orientation
+                with self.data_queue.mutex:
+                    self.data_queue.queue.clear()
 
-                desired_pose.pose.position.x = arm_position_dict["x"]
-                desired_pose.pose.position.y = arm_position_dict["y"]
-                desired_pose.pose.position.z = arm_position_dict["z"]
+                target = geometry_msgs.msg.PoseStamped()
+                target.pose.orientation = self.orientation
+
+                target.pose.position.x = arm_position_dict["x"]
+                target.pose.position.y = arm_position_dict["y"]
+                target.pose.position.z = arm_position_dict["z"]
 
                 self.commander.move_to_pose_value_target_unsafe(
-                    desired_pose, wait=False, ik_constraints=self.constraints
+                    target, wait=False, ik_constraints=self.constraints
                 )
