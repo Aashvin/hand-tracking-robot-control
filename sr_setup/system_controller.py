@@ -74,19 +74,16 @@ class Controller:
         hand_thread.join()
 
     def run_arm_hand(self):
-        self.arm_controller.controller.set_pose_reference_frame("ra_base")
-        self.arm_controller.controller.move_to_named_target("ra_start")
-        self.arm_controller.controller.move_to_joint_value_target_unsafe(
-            {"ra_wrist_3_joint": -180}, wait=True, angle_degrees=True
-        )
-        rospy.sleep(3.0)
-        self.hand_controller.controller.move_to_named_target("open")
+        self.hand_controller.set_required_landmarks()
+        self.arm_controller.set_required_landmarks()
 
-        desired_pose = self.arm_controller.move_to_start_pose()
+        self.arm_controller.move_to_start_pose()
+        rospy.sleep(3.0)
+        self.hand_controller.move_to_start_pose()
 
         time.sleep(2)
 
-        hand_thread = threading.Thread(target=self.hand_controller.publish_joint)
+        hand_thread = threading.Thread(target=self.hand_controller.publish_move)
         hand_thread.start()
 
         arm_thread = threading.Thread(target=self.arm_controller.publish_move)

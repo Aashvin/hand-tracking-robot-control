@@ -11,22 +11,6 @@ import tf
 from robot_controller import RobotController
 from webcam_controller import HAND_LANDMARKS
 
-#         # Get the position of the base of the middle finger for the x, y of the robot
-#         mid_finger_x = hand.landmark[self.mp_hands.HandLandmark.MIDDLE_FINGER_MCP].x
-#         mid_finger_y = hand.landmark[self.mp_hands.HandLandmark.MIDDLE_FINGER_MCP].y
-#         mid_finger_pos = (mid_finger_x, mid_finger_y)
-
-#         # Get the normalised distance between the base of the middle finger and the wrist for the z of the robot
-#         squared_y_dist = (
-#             hand.landmark[self.mp_hands.HandLandmark.WRIST].y
-#             - hand.landmark[self.mp_hands.HandLandmark.MIDDLE_FINGER_MCP].y
-#         ) ** 2
-#         squared_x_dist = (
-#             hand.landmark[self.mp_hands.HandLandmark.WRIST].x
-#             - hand.landmark[self.mp_hands.HandLandmark.MIDDLE_FINGER_MCP].x
-#         ) ** 2
-#         norm_dist = np.sqrt(squared_y_dist + squared_x_dist)
-
 
 class ArmController(RobotController):
     def __init__(self, name: str) -> None:
@@ -95,7 +79,6 @@ class ArmController(RobotController):
     def process_landmark_data(self, landmark_data):
         mid_finger_x = landmark_data["x"][HAND_LANDMARKS.MIDDLE_FINGER_MCP]
         mid_finger_y = landmark_data["y"][HAND_LANDMARKS.MIDDLE_FINGER_MCP]
-        hand_x_y = (mid_finger_x, mid_finger_y)
 
         squared_x_dist = (
             landmark_data["x"][HAND_LANDMARKS.WRIST]
