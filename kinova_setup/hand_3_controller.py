@@ -86,17 +86,6 @@ class HandController(RobotController):
             point.accelerations.append(0)
             point.effort.append(0)
 
-        if len(jointcmds) > 3:
-            print("STARTING")
-            for i in range(0, self.nb_fingers):
-                jointCmd.joint_names.append(
-                    self.prefix + "_joint_finger_tip_" + str(i + 1)
-                )
-                point.positions.append(0)
-                point.velocities.append(0)
-                point.accelerations.append(0)
-                point.effort.append(0)
-
         jointCmd.points.append(point)
         # rate = rospy.Rate(100)
         # count = 0
@@ -117,9 +106,9 @@ class HandController(RobotController):
         else:
             self.move_joint([0.0, 2.9, 0.0, 1.3, 4.2, 1.4, 0.0])
 
-        # rospy.sleep(10)
+        rospy.sleep(5)
 
-        self.move_fingers([0] * 6)
+        self.move_fingers([0] * 3)
 
     def calculate_angles(self, joints):
         high_mid_vec = [
@@ -208,15 +197,19 @@ class HandController(RobotController):
 
             if angle_dict is not None:
                 flex = {
-                    "rh_FFJ2": angle_dict[HAND_LANDMARKS.INDEX_FINGER_PIP],
-                    "rh_FFJ3": angle_dict[HAND_LANDMARKS.INDEX_FINGER_MCP],
-                    "rh_MFJ2": angle_dict[HAND_LANDMARKS.MIDDLE_FINGER_PIP],
-                    "rh_MFJ3": angle_dict[HAND_LANDMARKS.MIDDLE_FINGER_MCP],
-                    "rh_THJ2": angle_dict[HAND_LANDMARKS.THUMB_IP],
-                    "rh_THJ3": angle_dict[HAND_LANDMARKS.THUMB_MCP],
+                    "rh_FFJ2": np.radians(angle_dict[HAND_LANDMARKS.INDEX_FINGER_PIP]),
+                    "rh_FFJ3": np.radians(angle_dict[HAND_LANDMARKS.INDEX_FINGER_MCP]),
+                    "rh_MFJ2": np.radians(angle_dict[HAND_LANDMARKS.MIDDLE_FINGER_PIP]),
+                    "rh_MFJ3": np.radians(angle_dict[HAND_LANDMARKS.MIDDLE_FINGER_MCP]),
+                    "rh_THJ2": np.radians(angle_dict[HAND_LANDMARKS.THUMB_IP]),
+                    "rh_THJ3": np.radians(angle_dict[HAND_LANDMARKS.THUMB_MCP]),
                 }
 
-                joint_commands = [flex["rh_THJ3"], flex["rh_FFJ3"], flex["rh_MFJ3"]]
+                joint_commands = [
+                    flex["rh_THJ2"] + flex["rh_THJ3"],
+                    flex["rh_FFJ2"] + flex["rh_FFJ3"],
+                    flex["rh_MFJ2"] + flex["rh_MFJ3"],
+                ]
 
                 for i in range(3):
                     joint_commands[i] = min(joint_commands[i], 1.35)
