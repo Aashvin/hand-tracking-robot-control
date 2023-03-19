@@ -79,12 +79,24 @@ class HandController(RobotController):
         point = JointTrajectoryPoint()
         jointCmd.header.stamp = rospy.Time.now() + rospy.Duration.from_sec(0.0)
         point.time_from_start = rospy.Duration.from_sec(5.0)
-        for i in range(0, self.nb_joints):
+        for i in range(0, self.nb_fingers):
             jointCmd.joint_names.append(self.prefix + "_joint_finger_" + str(i + 1))
             point.positions.append(jointcmds[i])
             point.velocities.append(0)
             point.accelerations.append(0)
             point.effort.append(0)
+
+        if len(jointcmds) > 3:
+            print("STARTING")
+            for i in range(0, self.nb_fingers):
+                jointCmd.joint_names.append(
+                    self.prefix + "_joint_finger_tip_" + str(i + 1)
+                )
+                point.positions.append(0)
+                point.velocities.append(0)
+                point.accelerations.append(0)
+                point.effort.append(0)
+
         jointCmd.points.append(point)
         # rate = rospy.Rate(100)
         # count = 0
@@ -104,6 +116,10 @@ class HandController(RobotController):
             self.move_joint([0.0, 2.9, 1.3, 4.2, 1.4, 3.0])
         else:
             self.move_joint([0.0, 2.9, 0.0, 1.3, 4.2, 1.4, 0.0])
+
+        # rospy.sleep(10)
+
+        self.move_fingers([0] * 6)
 
     def calculate_angles(self, joints):
         high_mid_vec = [
@@ -155,7 +171,7 @@ class HandController(RobotController):
 
     def finger_angles(self, landmark_data):
         angle_dict = {}
-        for finger in range(5):
+        for finger in range(3):
             upper_joints = {
                 dim: [
                     landmark_data[dim][self.required_landmarks[finger * 3 + i]]
@@ -201,5 +217,8 @@ class HandController(RobotController):
                 }
 
                 joint_commands = [flex["rh_THJ3"], flex["rh_FFJ3"], flex["rh_MFJ3"]]
+
+                for i in range(3):
+                    joint_commands[i] = min(joint_commands[i], 1.35)
 
                 self.move_fingers(joint_commands)
