@@ -7,6 +7,7 @@ import time
 import threading
 from typing import Optional
 
+from finger_angle_utilities import finger_angles
 from webcam_controller import WebcamController
 from robot_controller import RobotController
 
@@ -49,7 +50,11 @@ class Controller:
                         results, self.hand_controller.required_landmarks
                     )
 
-                    angle_dict = self.hand_controller.finger_angles(landmark_data)
+                    angle_dict = finger_angles(
+                        self.hand_controller.nb_fingers,
+                        self.hand_controller.required_landmarks,
+                        landmark_data,
+                    )
 
                     self.webcam_controller.display_angle(
                         image, landmark_data, angle_dict
