@@ -93,7 +93,7 @@ class ArmController(RobotController):
         arm_position_dict = {
             "x": -mid_finger_y + 1,
             "y": -mid_finger_x * 2 + 1,
-            "z": max(0.2, 0.4 - norm_dist),
+            "z": max(0.1, 0.5 - norm_dist),
         }
 
         return arm_position_dict

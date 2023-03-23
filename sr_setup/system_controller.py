@@ -44,8 +44,6 @@ class Controller:
 
                 # Rendering results
                 if results.multi_hand_landmarks:
-                    self.webcam_controller.draw_landmark_results(results, image)
-
                     landmark_data = self.webcam_controller.get_landmark_data(
                         results, self.hand_controller.required_landmarks
                     )
@@ -56,6 +54,7 @@ class Controller:
                         landmark_data,
                     )
 
+                    self.webcam_controller.draw_landmark_results(results, image)
                     self.webcam_controller.display_angle(
                         image, landmark_data, angle_dict
                     )
@@ -85,6 +84,11 @@ class Controller:
         # rospy.sleep(3.0)
         self.hand_controller.move_to_start_pose()
 
+        all_required_landmarks = (
+            self.hand_controller.required_landmarks
+            + self.arm_controller.required_landmarks
+        )
+
         # rospy.sleep(2)
 
         hand_thread = threading.Thread(target=self.hand_controller.publish_move)
@@ -104,19 +108,17 @@ class Controller:
 
                 # Rendering results
                 if results.multi_hand_landmarks:
-                    self.webcam_controller.draw_landmark_results(results, image)
-
-                    all_required_landmarks = (
-                        self.hand_controller.required_landmarks
-                        + self.arm_controller.required_landmarks
-                    )
-
                     landmark_data = self.webcam_controller.get_landmark_data(
                         results, all_required_landmarks
                     )
 
-                    angle_dict = self.hand_controller.finger_angles(landmark_data)
+                    angle_dict = finger_angles(
+                        self.hand_controller.nb_fingers,
+                        self.hand_controller.required_landmarks,
+                        landmark_data,
+                    )
 
+                    self.webcam_controller.draw_landmark_results(results, image)
                     self.webcam_controller.display_angle(
                         image, landmark_data, angle_dict
                     )
