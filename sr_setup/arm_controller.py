@@ -4,7 +4,6 @@ import numpy as np
 
 import geometry_msgs
 import moveit_msgs.msg
-import rospy
 from sr_robot_commander.sr_arm_commander import SrArmCommander
 import tf
 
@@ -100,14 +99,16 @@ class ArmController(RobotController):
 
     def publish_move(self):
         while True:
-            arm_position_dict = self.data_queue.get()
+            landmark_data = self.data_queue.get()
 
-            if arm_position_dict == "END":
+            if landmark_data == "END":
                 return
 
-            if arm_position_dict is not None:
+            if landmark_data is not None:
                 with self.data_queue.mutex:
                     self.data_queue.queue.clear()
+
+                arm_position_dict = self.process_landmark_data(landmark_data)
 
                 target = geometry_msgs.msg.PoseStamped()
                 target.pose.orientation = self.orientation

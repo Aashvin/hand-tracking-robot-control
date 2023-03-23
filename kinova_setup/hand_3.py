@@ -11,7 +11,7 @@ def run():
     rospy.init_node("hand_controller", anonymous=True)
 
     hand = HandController()
-    cam = WebcamController()
+    cam = WebcamController(source="/dev/video0")
 
     controller = Controller(webcam_controller=cam, hand_controller=hand)
 

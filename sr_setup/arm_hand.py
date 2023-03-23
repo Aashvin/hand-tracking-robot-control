@@ -9,11 +9,11 @@ from system_controller import Controller
 
 
 def run():
-    rospy.init_node("arm_hand_controller", anonymous=True)
+    rospy.init_node("shadow_robot_arm_hand_controller", anonymous=True)
 
     hand = HandController(name="right_hand")
     arm = ArmController(name="right_arm")
-    cam = WebcamController()
+    cam = WebcamController(source="/dev/video0")
 
     controller = Controller(
         webcam_controller=cam, hand_controller=hand, arm_controller=arm

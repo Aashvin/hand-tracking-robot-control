@@ -1,7 +1,15 @@
+#!/usr/bin/env python3.8
+
 import numpy as np
 
 
 def calculate_angles(joints):
+    """
+    Calculates the angle of the middle joint of 3 consecutive joints.
+    Models 2 consecutive joints as vectors to calculate the angle between them.
+    """
+
+    # Calculate the two vectors
     high_mid_vec = [
         joints["x"][2] - joints["x"][1],
         joints["y"][2] - joints["y"][1],
@@ -44,13 +52,16 @@ def calculate_angles(joints):
     # Calculate the actual angle
     angle = 180 - np.degrees(np.arccos(dot))
 
-    # If the angle is calculated for a lower joint, clip it between 0 and 90
-    # Avoids out of bounds angles being published to the robot
-
     return angle
 
 
 def finger_angles(nb_fingers, required_landmarks, landmark_data):
+    """
+    Gets the landmark data of 3 consecutive joints to calculate the angle of the middle one.
+    Does this for each finger's upper (PIP) joint and low (MCP) joint.
+    required_landmarks must be in a proper format for this function to work correctly.
+    """
+
     angle_dict = {}
     for finger in range(nb_fingers):
         upper_joints = {
