@@ -1,6 +1,8 @@
 import os
+import time
 
 print("Please don't close the pop-up window.")
+time.sleep(3)
 
 os.system("docker start dexterous_hand_simulated")
 
