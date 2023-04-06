@@ -1,6 +1,7 @@
 #!/usr/bin/env python3.8
 
 import cv2
+import os
 import pandas as pd
 import threading
 import time
@@ -11,7 +12,7 @@ from robot_controller import RobotController
 from webcam_controller import WebcamController
 
 
-REFRESH_RATE = 0.5
+REFRESH_RATE = 0.2
 
 
 class Controller:
@@ -115,8 +116,12 @@ class Controller:
         for joint in test_data.keys():
             test_data[joint] = test_data[joint][-150:]
         test_data_df = pd.DataFrame(test_data)
+
+        if not os.path.exists("/home/user/test_data"):
+            os.mkdir("/home/user/test_data")
+
         test_data_df.to_csv(
-            f"/home/user/test_data/pose{pose}-angle{angle}", index=False
+            f"/home/user/test_data/pose{pose}-angle{angle}.csv", index=False
         )
 
     def run_arm_hand(self) -> None:
