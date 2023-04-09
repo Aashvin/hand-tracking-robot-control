@@ -55,7 +55,7 @@ class Controller:
                 image = mp_image.numpy_view()
 
                 # If the right hand has been found in the frame
-                if results.hand_landmarks and results.handedness[0][0].category_name == "Right":
+                if results.hand_landmarks:
 
                     # Process x, y, z coordinates for the required landmarks
                     landmark_data = self.webcam_controller.get_landmark_data(
@@ -233,7 +233,7 @@ class Controller:
                 image = mp_image.numpy_view()
 
                 # If the right hand has been found in the frame
-                if results.hand_landmarks and results.handedness[0][0].category_name == "Right":
+                if results.hand_landmarks:
 
                     # Process x, y, z coordinates for the required landmarks
                     landmark_data = self.webcam_controller.get_landmark_data(
