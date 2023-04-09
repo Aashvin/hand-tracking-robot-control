@@ -4,6 +4,7 @@ import mediapipe as mp
 from mediapipe.framework.formats import landmark_pb2
 import cv2
 import numpy as np
+import os
 import time
 
 
@@ -21,7 +22,8 @@ class WebcamController:
         self.cap_width = self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)
         self.cap_height = self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
 
-        self.base_options = mp.tasks.BaseOptions(model_asset_path="hand_landmarker.task")
+        tracker_task_path = os.getcwd().replace("\\", "/") + "/hand_landmarker.task"
+        self.base_options = mp.tasks.BaseOptions(model_asset_path=tracker_task_path)
         self.options = mp.tasks.vision.HandLandmarkerOptions(base_options=self.base_options, num_hands=1, running_mode=mp.tasks.vision.RunningMode.VIDEO, min_hand_detection_confidence=0.7, min_tracking_confidence=0.7)
         self.detector = mp.tasks.vision.HandLandmarker.create_from_options(self.options)
 

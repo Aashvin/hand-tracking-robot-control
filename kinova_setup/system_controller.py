@@ -124,22 +124,21 @@ class Controller:
         time1 = time.time()
 
         # Set the detection and tracking confidences of MediaPipe Hands
-        with self.webcam_controller.mp_hands.Hands(
-            min_detection_confidence=0.7, min_tracking_confidence=0.7
-        ) as hands:
+        with self.webcam_controller.detector:
             while self.webcam_controller.cap.isOpened():
                 # Get the image and hand tracking results from the webcam and MediaPipe Hands
-                image, results = self.webcam_controller.read_capture(hands)
+                mp_image, results = self.webcam_controller.read_capture()
+                image = mp_image.numpy_view()
 
-                # If a hand is found in the webcam frame
-                if results.multi_hand_landmarks:
+                # If the right hand has been found in the frame
+                if results.hand_landmarks and results.handedness[0][0].category_name == "Right":
+
                     # Process x, y, z coordinates for the required landmarks
                     landmark_data = self.webcam_controller.get_landmark_data(
-                        results, all_required_landmarks
+                        results.hand_landmarks[0], self.hand_controller.required_landmarks
                     )
 
                     # Calculate the angles of the required relevant joints
-                    # This processing is required here so the angles can be displayed
                     angle_dict = finger_angles(
                         self.hand_controller.nb_fingers,
                         self.hand_controller.required_landmarks,
@@ -147,7 +146,7 @@ class Controller:
                     )
 
                     # Render hand tracking landmark visuals and angles
-                    self.webcam_controller.draw_landmark_results(results, image)
+                    image = self.webcam_controller.draw_landmark_results(results.hand_landmarks[0], image)
                     self.webcam_controller.display_angle(
                         image, landmark_data, angle_dict
                     )
