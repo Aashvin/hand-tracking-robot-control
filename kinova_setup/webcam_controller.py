@@ -1,8 +1,10 @@
 #!/usr/bin/env python3.8
 
 import mediapipe as mp
+from mediapipe.framework.formats import landmark_pb2
 import cv2
 import numpy as np
+import time
 
 
 HAND_LANDMARKS = mp.solutions.hands.HandLandmark
@@ -19,45 +21,51 @@ class WebcamController:
         self.cap_width = self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)
         self.cap_height = self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
 
-    def read_capture(self, hands):
+        self.base_options = mp.tasks.BaseOptions(model_asset_path="hand_landmarker.task")
+        self.options = mp.tasks.vision.HandLandmarkerOptions(base_options=self.base_options, num_hands=1, running_mode=mp.tasks.vision.RunningMode.VIDEO, min_hand_detection_confidence=0.7, min_tracking_confidence=0.7)
+        self.detector = mp.tasks.vision.HandLandmarker.create_from_options(self.options)
+
+    def read_capture(self):
         """
         Process the raw image capture from the webcam to work with MediaPipe Hands.
         """
 
-        # Read the current frame from the webcam
-        ret, frame = self.cap.read()
+        # Read the current frame from the webcam and flip on the horizontal axis for correct orientation
+        frame = cv2.flip(self.cap.read()[1], 1)
 
-        # Convert frame from BGR to RGB
-        image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        # Convert current frame into a MediaPipe Image
+        mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame)
 
-        # Flip on the horizontal axis for hand tracking and display
-        image = cv2.flip(image, 1)
+        results = self.detector.detect_for_video(mp_image, int(time.time() * 1000))
 
-        # Set flag
-        image.flags.writeable = False
-
-        # Get the hand tracking results for this frame
-        results = hands.process(image)
-
-        # Set the image to be writable so can display hand tracking data
-        image.flags.writeable = True
-
-        # Convert frame from back to BGR from RGB
-        image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-
-        return image, results
+        return mp_image, results
 
     def draw_landmark_results(self, results, image):
         """
         Draw the MediaPipe Hands landmarks and landmark connections to the image.
         """
 
-        for num, hand in enumerate(results.multi_hand_landmarks):
-            self.mp_drawing.draw_landmarks(
-                image,
-                hand,
-                self.mp_hands.HAND_CONNECTIONS,
-            )
+        annotated_image = np.copy(image)
+
+        # Draw the hand landmarks.
+        hand_landmarks_proto = landmark_pb2.NormalizedLandmarkList()
+        hand_landmarks_proto.landmark.extend(
+            [
+                landmark_pb2.NormalizedLandmark(
+                    x=landmark.x, y=landmark.y, z=landmark.z
+                )
+                for landmark in results
+            ]
+        )
+        mp.solutions.drawing_utils.draw_landmarks(
+            annotated_image,
+            hand_landmarks_proto,
+            mp.solutions.hands.HAND_CONNECTIONS,
+            mp.solutions.drawing_styles.get_default_hand_landmarks_style(),
+            mp.solutions.drawing_styles.get_default_hand_connections_style(),
+        )
+
+        return annotated_image
 
     def get_landmark_data(self, results, required_landmarks):
         """
@@ -65,18 +73,15 @@ class WebcamController:
         """
 
         landmark_data = {}
-        for hand in results.multi_hand_landmarks:
-            landmark_data["x"] = {
-                landmark: hand.landmark[landmark].x for landmark in required_landmarks
-            }
-
-            landmark_data["y"] = {
-                landmark: hand.landmark[landmark].y for landmark in required_landmarks
-            }
-
-            landmark_data["z"] = {
-                landmark: hand.landmark[landmark].z for landmark in required_landmarks
-            }
+        landmark_data["x"] = {
+            landmark: results[landmark].x for landmark in required_landmarks
+        }
+        landmark_data["y"] = {
+            landmark: results[landmark].y for landmark in required_landmarks
+        }
+        landmark_data["z"] = {
+            landmark: results[landmark].z for landmark in required_landmarks
+        }
 
         return landmark_data
 
