@@ -16,6 +16,13 @@ class HandController(RobotController):
         self.nb_fingers: int = 5
         self.controller: SrHandCommander = SrHandCommander(name=name)
 
+        if name == "right_hand":
+            self.prefix = "rh"
+        elif name == "left_hand":
+            self.prefix = "lh"
+        else:
+            "Please use 'name=right_hand' or 'name=left_hand' to set a joint prefix. The hand will not be contraollable otherwise."
+
     def set_required_landmarks(self) -> None:
         self.required_landmarks = [
             HAND_LANDMARKS.INDEX_FINGER_MCP,
@@ -52,16 +59,16 @@ class HandController(RobotController):
             # If the queue contains something, process and send it to the hand
             if angle_dict is not None:
                 flex = {
-                    "rh_FFJ2": angle_dict[HAND_LANDMARKS.INDEX_FINGER_PIP],
-                    "rh_FFJ3": angle_dict[HAND_LANDMARKS.INDEX_FINGER_MCP],
-                    "rh_MFJ2": angle_dict[HAND_LANDMARKS.MIDDLE_FINGER_PIP],
-                    "rh_MFJ3": angle_dict[HAND_LANDMARKS.MIDDLE_FINGER_MCP],
-                    "rh_RFJ2": angle_dict[HAND_LANDMARKS.RING_FINGER_PIP],
-                    "rh_RFJ3": angle_dict[HAND_LANDMARKS.RING_FINGER_MCP],
-                    "rh_LFJ2": angle_dict[HAND_LANDMARKS.PINKY_PIP],
-                    "rh_LFJ3": angle_dict[HAND_LANDMARKS.PINKY_MCP],
-                    "rh_THJ2": angle_dict[HAND_LANDMARKS.THUMB_IP],
-                    "rh_THJ3": angle_dict[HAND_LANDMARKS.THUMB_MCP],
+                    f"{self.prefix}_FFJ2": angle_dict[HAND_LANDMARKS.INDEX_FINGER_PIP],
+                    f"{self.prefix}_FFJ3": angle_dict[HAND_LANDMARKS.INDEX_FINGER_MCP],
+                    f"{self.prefix}_MFJ2": angle_dict[HAND_LANDMARKS.MIDDLE_FINGER_PIP],
+                    f"{self.prefix}_MFJ3": angle_dict[HAND_LANDMARKS.MIDDLE_FINGER_MCP],
+                    f"{self.prefix}_RFJ2": angle_dict[HAND_LANDMARKS.RING_FINGER_PIP],
+                    f"{self.prefix}_RFJ3": angle_dict[HAND_LANDMARKS.RING_FINGER_MCP],
+                    f"{self.prefix}_LFJ2": angle_dict[HAND_LANDMARKS.PINKY_PIP],
+                    f"{self.prefix}_LFJ3": angle_dict[HAND_LANDMARKS.PINKY_MCP],
+                    f"{self.prefix}_THJ2": angle_dict[HAND_LANDMARKS.THUMB_IP],
+                    f"{self.prefix}_THJ3": angle_dict[HAND_LANDMARKS.THUMB_MCP],
                 }
 
                 self.controller.move_to_joint_value_target_unsafe(
