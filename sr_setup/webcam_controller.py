@@ -13,9 +13,6 @@ HAND_LANDMARKS = mp.solutions.hands.HandLandmark
 
 class WebcamController:
     def __init__(self, source: str = "/dev/video0", num_hands: int = 1) -> None:
-        self.mp_hands = mp.solutions.hands
-        self.mp_drawing = mp.solutions.drawing_utils
-
         self.cap = cv2.VideoCapture(source)
         self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc("M", "J", "P", "G"))
 
@@ -74,15 +71,10 @@ class WebcamController:
         Create a dictionary of dictionaries of each landmark coordinate by axis.
         """
 
-        landmark_data = {}
-        landmark_data["x"] = {
-            landmark: results[landmark].x for landmark in required_landmarks
-        }
-        landmark_data["y"] = {
-            landmark: results[landmark].y for landmark in required_landmarks
-        }
-        landmark_data["z"] = {
-            landmark: results[landmark].z for landmark in required_landmarks
+        landmark_data = {
+            "x": {landmark: results[landmark].x for landmark in required_landmarks},
+            "y": {landmark: results[landmark].y for landmark in required_landmarks},
+            "z": {landmark: results[landmark].z for landmark in required_landmarks},
         }
 
         return landmark_data

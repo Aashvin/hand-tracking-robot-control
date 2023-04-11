@@ -21,7 +21,7 @@ def run(pose, angle):
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:
-        print("Please provide the angle and pose as arguments in the form:")
-        print("rosrun robot_control test_hand.py <angle> <pose>")
+        print("Please provide the pose and angle as arguments in the form:")
+        print("rosrun robot_control test_hand.py <pose> <angle>")
     else:
         run(sys.argv[1], sys.argv[2])

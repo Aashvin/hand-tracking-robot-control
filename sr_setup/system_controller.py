@@ -131,18 +131,9 @@ class Controller:
                 if results.hand_landmarks:
                     first_hand = self.hand_controller if results.handedness[0][0].category_name == "Right" else self.hand2_controller
 
-                    if len(results.handedness) == 2:
-                        second_hand = self.hand2_controller if results.handedness[0][0].category_name == "Right" else self.hand_controller
-
                     first_hand_landmark_data = self.webcam_controller.get_landmark_data(
                         results.hand_landmarks[0], first_hand.required_landmarks
                     )
-
-                    if second_hand:
-                        second_hand_landmark_data = self.webcam_controller.get_landmark_data(
-                            results.hand_landmarks[1], second_hand.required_landmarks
-                        )
-
 
                     # Calculate the angles of the required relevant joints
                     first_hand_angle_dict = finger_angles(
@@ -151,20 +142,25 @@ class Controller:
                         first_hand_landmark_data,
                     )
 
-                    if second_hand:
-                        second_hand_angle_dict = finger_angles(
-                            second_hand.nb_fingers,
-                            second_hand.required_landmarks,
-                            second_hand_landmark_data,
-                        )
-
                     # Render hand tracking landmark visuals and angles
                     image = self.webcam_controller.draw_landmark_results(results.hand_landmarks[0], image)
                     self.webcam_controller.display_angle(
                         image, first_hand_landmark_data, first_hand_angle_dict
                     )
 
-                    if second_hand:
+                    if len(results.handedness) == 2:
+                        second_hand = self.hand2_controller if results.handedness[0][0].category_name == "Right" else self.hand_controller
+
+                        second_hand_landmark_data = self.webcam_controller.get_landmark_data(
+                            results.hand_landmarks[1], second_hand.required_landmarks
+                        )
+
+                        second_hand_angle_dict = finger_angles(
+                            second_hand.nb_fingers,
+                            second_hand.required_landmarks,
+                            second_hand_landmark_data,
+                        )
+
                         image = self.webcam_controller.draw_landmark_results(results.hand_landmarks[1], image)
                         self.webcam_controller.display_angle(
                             image, second_hand_landmark_data, second_hand_angle_dict
