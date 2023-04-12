@@ -11,7 +11,7 @@ from htrc_framework.system_controller import Controller
 def run():
     rospy.init_node("shadow_robot_arm_hand_controller", anonymous=True)
 
-    hand = HandController(name="right_hand")
+    hand = HandController(nb_fingers=5, name="right_hand")
     arm = ArmController(name="right_arm")
     cam = WebcamController(source="/dev/video0")
 

@@ -8,7 +8,7 @@ import time
 from typing import Optional
 
 from htrc_framework.finger_angle_utilities import finger_angles
-from htrc_framework.robot_controller import RobotController
+from htrc_framework.base_robot_controllers import BaseHandController, BaseArmController
 from htrc_framework.webcam_controller import WebcamController
 
 
@@ -19,11 +19,11 @@ class Controller:
     def __init__(
         self,
         webcam_controller: WebcamController,
-        hand_controller: RobotController,
-        arm_controller: Optional[RobotController] = None,
+        hand_controller: BaseHandController,
+        arm_controller: Optional[BaseArmController] = None,
     ) -> None:
-        self.hand_controller: RobotController = hand_controller
-        self.arm_controller: Optional[RobotController] = arm_controller
+        self.hand_controller: BaseHandController = hand_controller
+        self.arm_controller: Optional[BaseArmController] = arm_controller
 
         self.webcam_controller: WebcamController = webcam_controller
 

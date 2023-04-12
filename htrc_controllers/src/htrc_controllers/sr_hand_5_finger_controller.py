@@ -6,14 +6,13 @@ The controller for the shadow robot dexterous hand.
 
 from sr_robot_commander.sr_hand_commander import SrHandCommander
 
-from htrc_framework.robot_controller import RobotController
+from htrc_framework.base_robot_controllers import BaseHandController
 from htrc_framework.webcam_controller import HAND_LANDMARKS
 
 
-class HandController(RobotController):
+class HandController(BaseHandController):
     def __init__(self, name: str) -> None:
         super().__init__()
-        self.nb_fingers: int = 5
         self.controller: SrHandCommander = SrHandCommander(name=name)
 
         if name == "right_hand":

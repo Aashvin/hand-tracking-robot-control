@@ -7,11 +7,11 @@ import moveit_msgs.msg
 from sr_robot_commander.sr_arm_commander import SrArmCommander
 import tf
 
-from htrc_framework.robot_controller import RobotController
+from htrc_framework.base_robot_controllers import BaseArmController
 from htrc_framework.webcam_controller import HAND_LANDMARKS
 
 
-class ArmController(RobotController):
+class ArmController(BaseArmController):
     def __init__(self, name: str) -> None:
         super().__init__()
         self.commander = SrArmCommander(name=name)

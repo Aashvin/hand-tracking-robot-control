@@ -7,16 +7,15 @@ from trajectory_msgs.msg import JointTrajectoryPoint
 from std_srvs.srv import Empty
 import argparse
 
-from htrc_framework.robot_controller import RobotController
+from htrc_framework.base_robot_controllers import BaseHandController
 from htrc_framework.webcam_controller import HAND_LANDMARKS
 
 
-class HandController(RobotController):
+class HandController(BaseHandController):
     def __init__(self) -> None:
         super().__init__()
         self.prefix = None
         self.nb_joints = None
-        self.nb_fingers = None
 
     def set_required_landmarks(self):
         self.required_landmarks = [
@@ -49,7 +48,6 @@ class HandController(RobotController):
         args_ = parser.parse_args(argv[1:])
         self.prefix = args_.kinova_robotType
         self.nb_joints = int(args_.kinova_robotType[3])
-        self.nb_fingers = int(args_.kinova_robotType[5])
 
     def move_joint(self, jointcmds):
         topic_name = "/" + self.prefix + "/effort_joint_trajectory_controller/command"

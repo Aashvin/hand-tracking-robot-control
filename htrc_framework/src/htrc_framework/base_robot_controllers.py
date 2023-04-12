@@ -52,3 +52,13 @@ class RobotController:
             if variable is not None:
                 # Any data processing and publish to the robot
                 pass
+
+
+class BaseHandController(RobotController):
+    def __init__(self, nb_fingers: int) -> None:
+        super().__init__()
+        self.nb_fingers = nb_fingers
+
+class BaseArmController(RobotController):
+    def __init__(self) -> None:
+        super().__init__()
