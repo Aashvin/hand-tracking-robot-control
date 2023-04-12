@@ -103,8 +103,8 @@ class Controller:
                 # Display the camera and hand tracking data if present
                 cv2.imshow("Finger Angles", image)
 
-                # Quit if the 'q' key is pressed
-                if cv2.waitKey(10) & 0xFF == ord("q"):
+                # Quit if the 'ESC' key is pressed
+                if cv2.waitKey(10) & 0xFF == 27:
                     break
 
         # Safely end the program
@@ -121,5 +121,5 @@ class Controller:
             os.mkdir("/home/user/test_data")
 
         test_data_df.to_csv(
-            f"/home/user/test_data/pose{pose}-angle{angle}.csv", index=False
+            f"/home/user/test_data/{self.hand_controller.nb_fingers}-fingers-pose{pose}-angle{angle}.csv", index=False
         )

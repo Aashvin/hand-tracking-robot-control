@@ -30,7 +30,10 @@ class WebcamController:
         """
 
         # Read the current frame from the webcam and flip on the horizontal axis for correct orientation
-        frame = cv2.flip(self.cap.read()[1], 1)
+        successful_read = False
+        while not successful_read:
+            successful_read, frame = self.cap.read()
+        frame = cv2.flip(frame, 1)
 
         # Convert current frame into a MediaPipe Image
         mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame)

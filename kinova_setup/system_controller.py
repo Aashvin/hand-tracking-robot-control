@@ -31,7 +31,7 @@ class Controller:
 
     def run_hand(self) -> None:
         """
-        Runs the program if there is only a hand.
+        Runs the program if there is only one hand.
         """
 
         # Set the required MediaPipe Hands landmarks and move the hand to its starting pose
@@ -87,7 +87,7 @@ class Controller:
                 cv2.imshow("Finger Angles", image)
 
                 # Quit if the 'q' key is pressed
-                if cv2.waitKey(10) & 0xFF == ord("q"):
+                if cv2.waitKey(10) & 0xFF == 27:
                     break
 
         # Safely end the program
@@ -98,8 +98,13 @@ class Controller:
 
     def run_2_hands(self) -> None:
         """
-        Runs the program if there is only a hand.
+        Runs the program if there are two hands.
         """
+
+        try:
+            assert self.hand2_controller
+        except:
+            raise AttributeError("The hand2_controller attribute needs to be set.")
 
         # Set the required MediaPipe Hands landmarks and move the hand to its starting pose
         self.hand_controller.set_required_landmarks()
@@ -181,7 +186,7 @@ class Controller:
                 cv2.imshow("Finger Angles", image)
 
                 # Quit if the 'q' key is pressed
-                if cv2.waitKey(10) & 0xFF == ord("q"):
+                if cv2.waitKey(10) & 0xFF == 27:
                     break
 
         # Safely end the program
@@ -196,6 +201,11 @@ class Controller:
         """
         Runs the program if there is both a hand and an arm.
         """
+
+        try:
+            assert self.arm_controller
+        except:
+            raise AttributeError("The arm_controller attribute needs to be set.")
 
         # Set the required MediaPipe Hands landmarks
         self.hand_controller.set_required_landmarks()
@@ -262,7 +272,7 @@ class Controller:
                 cv2.imshow("Finger Angles", image)
 
                 # Quit if the 'q' key is pressed
-                if cv2.waitKey(10) & 0xFF == ord("q"):
+                if cv2.waitKey(10) & 0xFF == 27:
                     break
 
         # Safely end the program

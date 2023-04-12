@@ -67,8 +67,8 @@ class HandController(RobotController):
                     f"{self.prefix}_RFJ3": angle_dict[HAND_LANDMARKS.RING_FINGER_MCP],
                     f"{self.prefix}_LFJ2": angle_dict[HAND_LANDMARKS.PINKY_PIP],
                     f"{self.prefix}_LFJ3": angle_dict[HAND_LANDMARKS.PINKY_MCP],
-                    f"{self.prefix}_THJ2": angle_dict[HAND_LANDMARKS.THUMB_IP],
-                    f"{self.prefix}_THJ3": angle_dict[HAND_LANDMARKS.THUMB_MCP],
+                    f"{self.prefix}_THJ1": angle_dict[HAND_LANDMARKS.THUMB_IP],
+                    f"{self.prefix}_THJ2": angle_dict[HAND_LANDMARKS.THUMB_MCP],
                 }
 
                 self.controller.move_to_joint_value_target_unsafe(
