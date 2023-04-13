@@ -11,8 +11,8 @@ from htrc_framework.webcam_controller import HAND_LANDMARKS
 
 
 class HandController(BaseHandController):
-    def __init__(self, name: str) -> None:
-        super().__init__()
+    def __init__(self, nb_fingers: int, name: str) -> None:
+        super().__init__(nb_fingers)
         self.controller: SrHandCommander = SrHandCommander(name=name)
 
         if name == "right_hand":
