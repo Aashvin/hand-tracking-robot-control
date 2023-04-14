@@ -2,6 +2,7 @@
 
 import numpy as np
 import rospy
+import sys
 from trajectory_msgs.msg import JointTrajectory
 from trajectory_msgs.msg import JointTrajectoryPoint
 from std_srvs.srv import Empty
@@ -32,22 +33,25 @@ class HandController(BaseHandController):
         ]
 
     def argument_parser(self):
-        """Argument parser"""
-        parser = argparse.ArgumentParser(
-            description="Drive robot joint to command position"
-        )
-        parser.add_argument(
-            "kinova_robotType",
-            metavar="kinova_robotType",
-            type=str,
-            default="j2n6a300",
-            help="kinova_RobotType is in format of: [{j|m|r|c}{1|2}{s|n}{4|6|7}{s|a}{2|3}{0}{0}]. eg: j2n6a300 refers to jaco v2 6DOF assistive 3fingers. Please be noted that not all options are valided for different robot types.",
-        )
-        # args_ = parser.parse_args(argument)
-        argv = rospy.myargv()
-        args_ = parser.parse_args(argv[1:])
-        self.prefix = args_.kinova_robotType
-        self.nb_joints = int(args_.kinova_robotType[3])
+        # """Argument parser"""
+        # parser = argparse.ArgumentParser(
+        #     description="Drive robot joint to command position"
+        # )
+        # parser.add_argument(
+        #     "kinova_robotType",
+        #     metavar="kinova_robotType",
+        #     type=str,
+        #     default="j2n6a300",
+        #     help="kinova_RobotType is in format of: [{j|m|r|c}{1|2}{s|n}{4|6|7}{s|a}{2|3}{0}{0}]. eg: j2n6a300 refers to jaco v2 6DOF assistive 3fingers. Please be noted that not all options are valided for different robot types.",
+        # )
+        # # args_ = parser.parse_args(argument)
+        # argv = rospy.myargv()
+        # args_ = parser.parse_args(argv[1:])
+        # self.prefix = args_.kinova_robotType
+        # self.nb_joints = int(args_.kinova_robotType[3])
+
+        self.prefix = sys.argv[1]
+        self.nb_joints = int(self.prefix[3])
 
     def move_joint(self, jointcmds):
         topic_name = "/" + self.prefix + "/effort_joint_trajectory_controller/command"

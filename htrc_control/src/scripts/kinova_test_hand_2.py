@@ -3,15 +3,15 @@
 import rospy
 import sys
 
-from htrc_controllers.sr_hand_5_finger_controller import HandController
+from htrc_controllers.kinova_hand_2_controller import HandController
 from htrc_framework.webcam_controller import WebcamController
-from htrc_framework.sr_test_system_controller import Controller
+from htrc_framework.kinova_test_system_controller import Controller
 
 
 def run(pose, angle):
-    rospy.init_node("shadow_robot_hand_controller", anonymous=True)
+    rospy.init_node("hand_controller", anonymous=True)
 
-    hand = HandController(nb_fingers=5, name="right_hand")
+    hand = HandController(nb_fingers=2)
     cam = WebcamController(source="/dev/video0")
 
     controller = Controller(webcam_controller=cam, hand_controller=hand)
@@ -22,6 +22,6 @@ def run(pose, angle):
 if __name__ == "__main__":
     if len(sys.argv) < 3:
         print("Please provide the pose and angle as arguments in the form:")
-        print("rosrun robot_control sr_test_hand.py <pose> <angle>")
+        print("rosrun robot_control kinova_test_hand_2.py <robot type> <pose> <angle>")
     else:
-        run(sys.argv[1], sys.argv[2])
+        run(sys.argv[2], sys.argv[3])

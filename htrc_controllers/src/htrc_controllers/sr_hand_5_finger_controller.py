@@ -13,7 +13,7 @@ from htrc_framework.webcam_controller import HAND_LANDMARKS
 class HandController(BaseHandController):
     def __init__(self, nb_fingers: int, name: str) -> None:
         super().__init__(nb_fingers)
-        self.controller: SrHandCommander = SrHandCommander(name=name)
+        self.commander: SrHandCommander = SrHandCommander(name=name)
 
         if name == "right_hand":
             self.prefix = "rh"
@@ -43,7 +43,7 @@ class HandController(BaseHandController):
         ]
 
     def move_to_start_pose(self) -> None:
-        self.controller.move_to_named_target("open")
+        self.commander.move_to_named_target("open")
 
     def publish_move(self) -> None:
         # Target of thread so return from while loop once ready to kill thread
@@ -70,6 +70,6 @@ class HandController(BaseHandController):
                     f"{self.prefix}_THJ2": angle_dict[HAND_LANDMARKS.THUMB_MCP],
                 }
 
-                self.controller.move_to_joint_value_target_unsafe(
+                self.commander.move_to_joint_value_target_unsafe(
                     flex, wait=False, angle_degrees=True
                 )

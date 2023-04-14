@@ -79,6 +79,8 @@ class Controller:
                         time1 = time2
 
                         # Add relevant angles to the data queue for the hand thread
+                        with self.hand_controller.data_queue.mutex:
+                            self.hand_controller.data_queue.queue.clear()
                         self.hand_controller.data_queue.put(angle_dict)
 
                 # Display the camera and hand tracking data if present
@@ -175,9 +177,13 @@ class Controller:
                         time1 = time2
 
                         # Add relevant angles to the data queue for the hand thread
+                        with first_hand.data_queue.mutex:
+                            first_hand.data_queue.queue.clear()
                         first_hand.data_queue.put(first_hand_angle_dict)
 
                         if second_hand:
+                            with second_hand.data_queue.mutex:
+                                second_hand.data_queue.queue.clear()
                             second_hand.data_queue.put(second_hand_angle_dict)
 
                 # Display the camera and hand tracking data if present
@@ -259,11 +265,15 @@ class Controller:
 
                     # If refresh rate time has been hit
                     time2 = time.time()
-                    if time2 - time1 > 0.5:
+                    if time2 - time1 >= REFRESH_RATE:
                         time1 = time2
 
                         # Add relevant data to the data queues for the hand and arm
+                        with self.hand_controller.data_queue.mutex:
+                            self.hand_controller.data_queue.queue.clear()
                         self.hand_controller.data_queue.put(angle_dict)
+                        with self.arm_controller.data_queue.mutex:
+                            self.arm_controller.data_queue.queue.clear()
                         self.arm_controller.data_queue.put(landmark_data)
 
                 # Display the camera and hand tracking data if present

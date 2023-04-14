@@ -105,9 +105,6 @@ class ArmController(BaseArmController):
                 return
 
             if landmark_data is not None:
-                with self.data_queue.mutex:
-                    self.data_queue.queue.clear()
-
                 arm_position_dict = self.process_landmark_data(landmark_data)
 
                 target = geometry_msgs.msg.PoseStamped()
