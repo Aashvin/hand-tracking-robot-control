@@ -15,7 +15,7 @@ from htrc_framework.base_robot_controllers import BaseHandController, BaseArmCon
 from htrc_framework.webcam_controller import WebcamController
 
 
-REFRESH_RATE = 0.2
+REFRESH_RATE = 5
 
 
 class Controller:
@@ -37,11 +37,7 @@ class Controller:
         """
 
         test_data = {"finger1": [], "finger2": []}
-
-        if self.hand_controller.nb_fingers == 2:
-            finger_positions = [0.0, 0.0]
-        elif self.hand_controller.nb_fingers == 3:
-            finger_positions = [0.0, 0.0, 0.0]
+        if self.hand_controller.nb_fingers == 3:
             test_data["finger3"] = []
 
         # Set the required MediaPipe Hands landmarks and move the hand to its starting pose
@@ -87,7 +83,7 @@ class Controller:
 
                     # If refresh rate time has been hit
                     time2 = time.time()
-                    if time2 - time1 >= REFRESH_RATE:
+                    if time2 - time1 >= 1 / REFRESH_RATE:
                         time1 = time2
 
                         finger_topic = "/" + self.hand_controller.prefix + "/effort_finger_trajectory_controller/state"

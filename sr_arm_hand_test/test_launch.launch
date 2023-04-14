@@ -56,7 +56,7 @@
   <!-- Set to true if you want the robot to start in the "home" positions -->
   <arg name="start_home" default="true"/>
   <!-- Definition of "home" position, in joint-angle pairs -->
-  <arg name="home_angles" default="-J ra_shoulder_pan_joint 0.0 -J ra_elbow_joint 2.0 -J ra_wrist_1_joint -1 -J ra_wrist_2_joint 1.5708 -J ra_shoulder_lift_joint -1.25 -J ra_wrist_3_joint -2"/>
+  <arg name="home_angles" default="-J ra_shoulder_pan_joint 3.0 -J ra_elbow_joint 2.0 -J ra_wrist_1_joint -1 -J ra_wrist_2_joint 1.5708 -J ra_shoulder_lift_joint -1.25 -J ra_wrist_3_joint -2"/>
   <!-- Robot side -->
   <arg name="side" value="right"/>
   <arg name="hand_type" default="hand_e"/>

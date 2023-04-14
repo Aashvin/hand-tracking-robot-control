@@ -22,6 +22,6 @@ def run(pose, angle):
 if __name__ == "__main__":
     if len(sys.argv) < 3:
         print("Please provide the pose and angle as arguments in the form:")
-        print("rosrun robot_control kinova_test_hand_2.py <robot type> <pose> <angle>")
+        print("rosrun robot_control kinova_test_hand_3.py <robot type> <pose> <angle>")
     else:
         run(sys.argv[2], sys.argv[3])

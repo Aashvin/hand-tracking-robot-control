@@ -12,7 +12,7 @@ from htrc_framework.base_robot_controllers import BaseHandController, BaseArmCon
 from htrc_framework.webcam_controller import WebcamController
 
 
-REFRESH_RATE = 0.2
+REFRESH_RATE = 5
 
 
 class Controller:
@@ -31,6 +31,8 @@ class Controller:
         """
         Runs the program if there is only a hand.
         """
+
+        computation_times = []
 
         test_data = {
             "rh_FFJ2": [],
@@ -61,6 +63,8 @@ class Controller:
         # Set the detection and tracking confidences of MediaPipe Hands
         with self.webcam_controller.detector:
             while self.webcam_controller.cap.isOpened():
+                computation_start_time = time.time()
+
                 # Get the image and hand tracking results from the webcam and MediaPipe Hands
                 mp_image, results = self.webcam_controller.read_capture()
                 image = mp_image.numpy_view()
@@ -80,6 +84,8 @@ class Controller:
                         landmark_data,
                     )
 
+                    computation_times.append(time.time() - computation_start_time)
+
                     # Render hand tracking landmark visuals and angles
                     image = self.webcam_controller.draw_landmark_results(results.hand_landmarks[0], image)
                     self.webcam_controller.display_angle(
@@ -88,7 +94,7 @@ class Controller:
 
                     # If refresh rate time has been hit
                     time2 = time.time()
-                    if time2 - time1 >= REFRESH_RATE:
+                    if time2 - time1 >= 1 / REFRESH_RATE:
                         time1 = time2
 
                         current_pose = (
@@ -128,6 +134,12 @@ class Controller:
         test_data_df.to_csv(
             f"{file_path}/test_data/{self.hand_controller.nb_fingers}-fingers-pose{pose}-angle{angle}.csv", index=False
         )
+
+        mean_computation_time = sum(computation_times) / len(computation_times)
+        print("Mean computation time was:", mean_computation_time)
+        f = open(f"{file_path}/test_data/computation_times.txt", "a")
+        f.write(str(mean_computation_time) + "\n")
+        f.close()
 
 
     def run_arm_hand(self, refresh_rate) -> None:
@@ -169,6 +181,7 @@ class Controller:
         arm_thread.start()
 
         time1 = time.time()
+        test_time1 = time.time()
 
         print("Click ENTER when you're ready to start the test. Click ESC when the test has finished.")
         input()
@@ -203,10 +216,9 @@ class Controller:
                         image, landmark_data, angle_dict
                     )
 
-                    # If refresh rate time has been hit
-                    time2 = time.time()
-                    if time2 - time1 >= refresh_rate:
-                        time1 = time2
+                    test_time2 = time.time()
+                    if test_time2 - test_time1 >= 1 / REFRESH_RATE:
+                        test_time1 = test_time2
 
                         current_pose = (
                             self.arm_controller.commander.get_current_pose("ra_base")
@@ -215,6 +227,11 @@ class Controller:
                         test_data["end_effector_x"].append(current_pose.position.x)
                         test_data["end_effector_y"].append(current_pose.position.y)
                         test_data["end_effector_z"].append(current_pose.position.z)
+
+                    # If refresh rate time has been hit
+                    time2 = time.time()
+                    if time2 - time1 >= 1 / refresh_rate:
+                        time1 = time2
 
                         # Add relevant data to the data queues for the hand and arm
                         with self.hand_controller.data_queue.mutex:
@@ -241,7 +258,6 @@ class Controller:
         arm_thread.join()
 
         for axis in test_data.keys():
-            test_data[axis] = test_data[axis][-150:]
             test_data[axis].append(total_test_time)
         test_data_df = pd.DataFrame(test_data)
 

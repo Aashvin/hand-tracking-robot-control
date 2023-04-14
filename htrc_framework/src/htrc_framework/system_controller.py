@@ -10,7 +10,7 @@ from htrc_framework.base_robot_controllers import BaseHandController, BaseArmCon
 from htrc_framework.webcam_controller import WebcamController
 
 
-REFRESH_RATE = 0.2
+REFRESH_RATE = 5
 
 
 class Controller:
@@ -75,7 +75,7 @@ class Controller:
 
                     # If refresh rate time has been hit
                     time2 = time.time()
-                    if time2 - time1 >= REFRESH_RATE:
+                    if time2 - time1 >= 1 / REFRESH_RATE:
                         time1 = time2
 
                         # Add relevant angles to the data queue for the hand thread
@@ -173,7 +173,7 @@ class Controller:
 
                     # If refresh rate time has been hit
                     time2 = time.time()
-                    if time2 - time1 >= REFRESH_RATE:
+                    if time2 - time1 >= 1 / REFRESH_RATE:
                         time1 = time2
 
                         # Add relevant angles to the data queue for the hand thread
@@ -265,7 +265,7 @@ class Controller:
 
                     # If refresh rate time has been hit
                     time2 = time.time()
-                    if time2 - time1 >= REFRESH_RATE:
+                    if time2 - time1 >= 1 / REFRESH_RATE:
                         time1 = time2
 
                         # Add relevant data to the data queues for the hand and arm
