@@ -51,7 +51,7 @@
 
   <!-- SIM ONLY CONFIG -->
   <!-- Set world value dependant on scene -->
-  <arg name="world" default="$(find sr_description_common)/worlds/test_world_new.world" unless="$(arg scene)"/>
+  <arg name="world" default="$(find sr_description_common)/worlds/test_world.world" unless="$(arg scene)"/>
   <arg name="world" default="$(find sr_description_common)/worlds/demo_space_large_bimanual.world" if="$(arg scene)"/>
   <!-- Set to true if you want the robot to start in the "home" positions -->
   <arg name="start_home" default="true"/>

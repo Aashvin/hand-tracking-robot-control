@@ -2,12 +2,15 @@
 
 import mediapipe as mp
 from mediapipe.framework.formats import landmark_pb2
+import numpy as np
 import cv2
 import numpy as np
 import os
 import time
-from typing import Dict
+from typing import Dict, List, Tuple
 
+from mediapipe.tasks.python.components.containers.landmark import NormalizedLandmark
+from mediapipe.tasks.python.vision.hand_landmarker import HandLandmarkerResult
 
 HAND_LANDMARKS = mp.solutions.hands.HandLandmark
 
@@ -39,7 +42,7 @@ class WebcamController:
         )
         self.detector = mp.tasks.vision.HandLandmarker.create_from_options(options)
 
-    def read_capture(self):
+    def read_capture(self) -> Tuple[mp.Image, HandLandmarkerResult]:
         """
         Process the raw image capture from the webcam to work with MediaPipe Hands.
         """
@@ -58,7 +61,9 @@ class WebcamController:
 
         return mp_image, results
 
-    def draw_landmark_results(self, results, image):
+    def draw_landmark_results(
+        self, results: List[NormalizedLandmark], image: np.ndarray
+    ) -> np.ndarray:
         """
         Draw the MediaPipe Hands landmarks and landmark connections to the image.
         """
@@ -88,11 +93,15 @@ class WebcamController:
         return annotated_image
 
     def get_landmark_data(
-        self, results, required_landmarks
+        self,
+        results: List[NormalizedLandmark],
+        required_landmarks: List[HAND_LANDMARKS],
     ) -> Dict[str, Dict[HAND_LANDMARKS, float]]:
         """
         Create a dictionary of dictionaries of each landmark coordinate by axis.
         """
+
+        print(results)
 
         landmark_data = {
             "x": {landmark: results[landmark].x for landmark in required_landmarks},
@@ -102,7 +111,12 @@ class WebcamController:
 
         return landmark_data
 
-    def display_angle(self, image, landmark_data, angle_dict):
+    def display_angle(
+        self,
+        image: np.ndarray,
+        landmark_data: Dict[str, Dict[HAND_LANDMARKS, float]],
+        angle_dict: Dict[HAND_LANDMARKS, float],
+    ):
         """
         Display the joint angle data on the image.
         """
