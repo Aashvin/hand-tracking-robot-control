@@ -13,14 +13,20 @@ from htrc_framework.webcam_controller import HAND_LANDMARKS
 class HandController(BaseHandController):
     def __init__(self, nb_fingers: int, name: str) -> None:
         super().__init__(nb_fingers)
-        self.commander: SrHandCommander = SrHandCommander(name=name)
 
+        # Make sure the handedness is indicated
+        # Present so can be used in 2 handed scenario
         if name == "right_hand":
             self.prefix = "rh"
         elif name == "left_hand":
             self.prefix = "lh"
         else:
-            "Please use 'name=right_hand' or 'name=left_hand' to set a joint prefix. The hand will not be contraollable otherwise."
+            raise ValueError(
+                "Please use 'name=right_hand' or 'name=left_hand' to set a joint prefix.",
+                "The hand will not be contraollable otherwise.",
+            )
+
+        self.commander: SrHandCommander = SrHandCommander(name=name)
 
     def set_required_landmarks(self) -> None:
         self.required_landmarks = [
@@ -46,17 +52,17 @@ class HandController(BaseHandController):
         self.commander.move_to_named_target("open")
 
     def publish_move(self) -> None:
-        # Target of thread so return from while loop once ready to kill thread
         while True:
-            # Get hand controller angles from the queue
+            # Get data from the queue
             angle_dict = self.data_queue.get()
 
-            # End if the user has quit the main program
+            # Exit thread if the end signal received
             if angle_dict == "END":
                 return
 
-            # If the queue contains something, process and send it to the hand
+            # If there is data in the queue
             if angle_dict is not None:
+                # Build the flex dictionary in the robot's specifications from the respective angles
                 flex = {
                     f"{self.prefix}_FFJ2": angle_dict[HAND_LANDMARKS.INDEX_FINGER_PIP],
                     f"{self.prefix}_FFJ3": angle_dict[HAND_LANDMARKS.INDEX_FINGER_MCP],
@@ -70,6 +76,7 @@ class HandController(BaseHandController):
                     f"{self.prefix}_THJ2": angle_dict[HAND_LANDMARKS.THUMB_MCP],
                 }
 
+                # Move the robot
                 self.commander.move_to_joint_value_target_unsafe(
                     flex, wait=False, angle_degrees=True
                 )

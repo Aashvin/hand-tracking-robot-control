@@ -52,12 +52,12 @@ class Controller:
                 mp_image, results = self.webcam_controller.read_capture()
                 image = mp_image.numpy_view()
 
-                # If the right hand has been found in the frame
+                # If a hand has been found in the frame
                 if results.hand_landmarks:
-
                     # Process x, y, z coordinates for the required landmarks
                     landmark_data = self.webcam_controller.get_landmark_data(
-                        results.hand_landmarks[0], self.hand_controller.required_landmarks
+                        results.hand_landmarks[0],
+                        self.hand_controller.required_landmarks,
                     )
 
                     # Calculate the angles of the required relevant joints
@@ -68,7 +68,9 @@ class Controller:
                     )
 
                     # Render hand tracking landmark visuals and angles
-                    image = self.webcam_controller.draw_landmark_results(results.hand_landmarks[0], image)
+                    image = self.webcam_controller.draw_landmark_results(
+                        results.hand_landmarks[0], image
+                    )
                     self.webcam_controller.display_angle(
                         image, landmark_data, angle_dict
                     )
@@ -86,7 +88,7 @@ class Controller:
                 # Display the camera and hand tracking data if present
                 cv2.imshow("Finger Angles", image)
 
-                # Quit if the 'q' key is pressed
+                # Quit if the ESC key is pressed
                 if cv2.waitKey(10) & 0xFF == 27:
                     break
 
@@ -133,9 +135,16 @@ class Controller:
 
                 second_hand = None
 
+                # If a hand has been found in the frame
                 if results.hand_landmarks:
-                    first_hand = self.hand_controller if results.handedness[0][0].category_name == "Right" else self.hand2_controller
+                    # Assign the correct hand controller based on the human hand in frame
+                    first_hand = (
+                        self.hand_controller
+                        if results.handedness[0][0].category_name == "Right"
+                        else self.hand2_controller
+                    )
 
+                    # Process x, y, z coordinates for the required landmarks
                     first_hand_landmark_data = self.webcam_controller.get_landmark_data(
                         results.hand_landmarks[0], first_hand.required_landmarks
                     )
@@ -148,25 +157,41 @@ class Controller:
                     )
 
                     # Render hand tracking landmark visuals and angles
-                    image = self.webcam_controller.draw_landmark_results(results.hand_landmarks[0], image)
+                    image = self.webcam_controller.draw_landmark_results(
+                        results.hand_landmarks[0], image
+                    )
                     self.webcam_controller.display_angle(
                         image, first_hand_landmark_data, first_hand_angle_dict
                     )
 
+                    # If there are two hands in frame
                     if len(results.handedness) == 2:
-                        second_hand = self.hand2_controller if results.handedness[0][0].category_name == "Right" else self.hand_controller
-
-                        second_hand_landmark_data = self.webcam_controller.get_landmark_data(
-                            results.hand_landmarks[1], second_hand.required_landmarks
+                        # Set the second hand controller to the opposite of the first
+                        second_hand = (
+                            self.hand2_controller
+                            if results.handedness[0][0].category_name == "Right"
+                            else self.hand_controller
                         )
 
+                        # Process x, y, z coordinates for the required landmarks
+                        second_hand_landmark_data = (
+                            self.webcam_controller.get_landmark_data(
+                                results.hand_landmarks[1],
+                                second_hand.required_landmarks,
+                            )
+                        )
+
+                        # Calculate the angles of the required relevant joints
                         second_hand_angle_dict = finger_angles(
                             second_hand.nb_fingers,
                             second_hand.required_landmarks,
                             second_hand_landmark_data,
                         )
 
-                        image = self.webcam_controller.draw_landmark_results(results.hand_landmarks[1], image)
+                        # Render hand tracking landmark visuals and angles
+                        image = self.webcam_controller.draw_landmark_results(
+                            results.hand_landmarks[1], image
+                        )
                         self.webcam_controller.display_angle(
                             image, second_hand_landmark_data, second_hand_angle_dict
                         )
@@ -176,11 +201,12 @@ class Controller:
                     if time2 - time1 >= 1 / REFRESH_RATE:
                         time1 = time2
 
-                        # Add relevant angles to the data queue for the hand thread
+                        # Add relevant angles to the data queue for the first hand thread
                         with first_hand.data_queue.mutex:
                             first_hand.data_queue.queue.clear()
                         first_hand.data_queue.put(first_hand_angle_dict)
 
+                        # Add relevant angles to the data queue for the second hand thread if present
                         if second_hand:
                             with second_hand.data_queue.mutex:
                                 second_hand.data_queue.queue.clear()
@@ -189,7 +215,7 @@ class Controller:
                 # Display the camera and hand tracking data if present
                 cv2.imshow("Finger Angles", image)
 
-                # Quit if the 'q' key is pressed
+                # Quit if the ESC key is pressed
                 if cv2.waitKey(10) & 0xFF == 27:
                     break
 
@@ -244,7 +270,6 @@ class Controller:
 
                 # If the right hand has been found in the frame
                 if results.hand_landmarks:
-
                     # Process x, y, z coordinates for the required landmarks
                     landmark_data = self.webcam_controller.get_landmark_data(
                         results.hand_landmarks[0], all_required_landmarks
@@ -258,7 +283,9 @@ class Controller:
                     )
 
                     # Render hand tracking landmark visuals and angles
-                    image = self.webcam_controller.draw_landmark_results(results.hand_landmarks[0], image)
+                    image = self.webcam_controller.draw_landmark_results(
+                        results.hand_landmarks[0], image
+                    )
                     self.webcam_controller.display_angle(
                         image, landmark_data, angle_dict
                     )
@@ -279,7 +306,7 @@ class Controller:
                 # Display the camera and hand tracking data if present
                 cv2.imshow("Finger Angles", image)
 
-                # Quit if the 'q' key is pressed
+                # Quit if the ESC key is pressed
                 if cv2.waitKey(10) & 0xFF == 27:
                     break
 

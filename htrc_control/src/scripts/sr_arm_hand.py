@@ -8,9 +8,15 @@ from htrc_framework.webcam_controller import WebcamController
 from htrc_framework.system_controller import Controller
 
 
-def run():
+def run() -> None:
+    """
+    Initialise each controller and run the program.
+    """
+
+    # Start the hand controller ROS node
     rospy.init_node("shadow_robot_arm_hand_controller", anonymous=True)
 
+    # Specify controllers
     hand = HandController(nb_fingers=5, name="right_hand")
     arm = ArmController(name="right_arm")
     cam = WebcamController(source="/dev/video0")
@@ -19,6 +25,7 @@ def run():
         webcam_controller=cam, hand_controller=hand, arm_controller=arm
     )
 
+    # Run arm and hand
     controller.run_arm_hand()
 
 

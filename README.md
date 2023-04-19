@@ -72,7 +72,7 @@ After Gazebo and RVIZ have loaded, in another tab run:
 
 ### Kinova Robots
 
-Open two terminals or tabs and source yout catkin workspace in both (include both the Kinova Robot packages and HTRC packages):
+Open two terminals or tabs and source your catkin workspace in both (include both the Kinova Robot packages and HTRC packages):
 `source <path-to-catkin_ws>/devel/setup.bash`
 
 The below robot types are supported by HTRC:

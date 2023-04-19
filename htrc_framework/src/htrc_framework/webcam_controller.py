@@ -6,6 +6,7 @@ import cv2
 import numpy as np
 import os
 import time
+from typing import Dict
 
 
 HAND_LANDMARKS = mp.solutions.hands.HandLandmark
@@ -13,16 +14,30 @@ HAND_LANDMARKS = mp.solutions.hands.HandLandmark
 
 class WebcamController:
     def __init__(self, source: str = "/dev/video0", num_hands: int = 1) -> None:
+        # Set the input video capture
         self.cap = cv2.VideoCapture(source)
+
+        ## Set the fourcc code of the VideoWriter
         self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc("M", "J", "P", "G"))
 
+        # Set the dimensions of the capture
         self.cap_width = self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)
         self.cap_height = self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
 
-        tracker_task_path = os.path.realpath(os.path.dirname(__file__)).replace("\\", "/") + "/hand_landmarker.task"
-        self.base_options = mp.tasks.BaseOptions(model_asset_path=tracker_task_path)
-        self.options = mp.tasks.vision.HandLandmarkerOptions(base_options=self.base_options, num_hands=num_hands, running_mode=mp.tasks.vision.RunningMode.VIDEO, min_hand_detection_confidence=0.7, min_tracking_confidence=0.7)
-        self.detector = mp.tasks.vision.HandLandmarker.create_from_options(self.options)
+        # Initialise the hand detector from the hand_landmarker.task file
+        tracker_task_path = (
+            os.path.realpath(os.path.dirname(__file__)).replace("\\", "/")
+            + "/hand_landmarker.task"
+        )
+        base_options = mp.tasks.BaseOptions(model_asset_path=tracker_task_path)
+        options = mp.tasks.vision.HandLandmarkerOptions(
+            base_options=base_options,
+            num_hands=num_hands,
+            running_mode=mp.tasks.vision.RunningMode.VIDEO,
+            min_hand_detection_confidence=0.7,
+            min_tracking_confidence=0.7,
+        )
+        self.detector = mp.tasks.vision.HandLandmarker.create_from_options(options)
 
     def read_capture(self):
         """
@@ -38,6 +53,7 @@ class WebcamController:
         # Convert current frame into a MediaPipe Image
         mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame)
 
+        # Get results from hand tracking
         results = self.detector.detect_for_video(mp_image, int(time.time() * 1000))
 
         return mp_image, results
@@ -49,7 +65,7 @@ class WebcamController:
 
         annotated_image = np.copy(image)
 
-        # Draw the hand landmarks.
+        # Construct the hand landmarks in format to draw on image
         hand_landmarks_proto = landmark_pb2.NormalizedLandmarkList()
         hand_landmarks_proto.landmark.extend(
             [
@@ -59,6 +75,8 @@ class WebcamController:
                 for landmark in results
             ]
         )
+
+        # Draw the hand landmarks and landmark connections on the image
         mp.solutions.drawing_utils.draw_landmarks(
             annotated_image,
             hand_landmarks_proto,
@@ -69,7 +87,9 @@ class WebcamController:
 
         return annotated_image
 
-    def get_landmark_data(self, results, required_landmarks):
+    def get_landmark_data(
+        self, results, required_landmarks
+    ) -> Dict[str, Dict[HAND_LANDMARKS, float]]:
         """
         Create a dictionary of dictionaries of each landmark coordinate by axis.
         """
@@ -87,11 +107,14 @@ class WebcamController:
         Display the joint angle data on the image.
         """
 
+        # For all joints and angle pairs in the required PIP and MCP joints
         for joint, angle in angle_dict.items():
+            # Get the normalised x and y coordinates of the current landmark
             coordinates = np.array(
                 [landmark_data["x"][joint], landmark_data["y"][joint]]
             )
 
+            # Put the angle text on the image next to the landmark it corresponds to
             cv2.putText(
                 image,
                 str(round(angle, 2)),

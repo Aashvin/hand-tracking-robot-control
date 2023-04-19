@@ -9,7 +9,6 @@ import threading
 import time
 from typing import Optional
 
-
 from htrc_framework.finger_angle_utilities import finger_angles
 from htrc_framework.base_robot_controllers import BaseHandController, BaseArmController
 from htrc_framework.webcam_controller import WebcamController
@@ -29,16 +28,24 @@ class Controller:
         self.arm_controller: Optional[BaseArmController] = arm_controller
 
         self.webcam_controller: WebcamController = webcam_controller
-        
 
-    def run_hand(self, pose, angle) -> None:
+    def run_hand(self, pose: int, angle: int) -> None:
         """
-        Runs the program if there is only a hand.
+        Runs the test scenario if there is only a hand.
+        This is used for the rotation set of tests.
         """
 
+        # Initialise the dictionary for the angle data of each finger to be stored
         test_data = {"finger1": [], "finger2": []}
         if self.hand_controller.nb_fingers == 3:
             test_data["finger3"] = []
+
+        # Build the name of the ROS topic to read robot angles from
+        finger_topic = (
+            "/"
+            + self.hand_controller.prefix
+            + "/effort_finger_trajectory_controller/state"
+        )
 
         # Set the required MediaPipe Hands landmarks and move the hand to its starting pose
         self.hand_controller.set_required_landmarks()
@@ -62,10 +69,10 @@ class Controller:
 
                 # If the right hand has been found in the frame
                 if results.hand_landmarks:
-
                     # Process x, y, z coordinates for the required landmarks
                     landmark_data = self.webcam_controller.get_landmark_data(
-                        results.hand_landmarks[0], self.hand_controller.required_landmarks
+                        results.hand_landmarks[0],
+                        self.hand_controller.required_landmarks,
                     )
 
                     # Calculate the angles of the required relevant joints
@@ -76,7 +83,9 @@ class Controller:
                     )
 
                     # Render hand tracking landmark visuals and angles
-                    image = self.webcam_controller.draw_landmark_results(results.hand_landmarks[0], image)
+                    image = self.webcam_controller.draw_landmark_results(
+                        results.hand_landmarks[0], image
+                    )
                     self.webcam_controller.display_angle(
                         image, landmark_data, angle_dict
                     )
@@ -86,11 +95,17 @@ class Controller:
                     if time2 - time1 >= 1 / REFRESH_RATE:
                         time1 = time2
 
-                        finger_topic = "/" + self.hand_controller.prefix + "/effort_finger_trajectory_controller/state"
-                        finger_positions = rospy.wait_for_message(finger_topic, control_msgs.msg.JointTrajectoryControllerState).actual.positions
+                        # Wait for a message from the ROS topic with robot angles
+                        finger_positions = rospy.wait_for_message(
+                            finger_topic,
+                            control_msgs.msg.JointTrajectoryControllerState,
+                        ).actual.positions
 
+                        # Add the new data to the test data dictionary
                         for joint in test_data.keys():
-                            test_data[joint].append(finger_positions[int(joint[-1]) - 1])
+                            test_data[joint].append(
+                                finger_positions[int(joint[-1]) - 1]
+                            )
 
                         # Add relevant angles to the data queue for the hand thread
                         with self.hand_controller.data_queue.mutex:
@@ -110,16 +125,23 @@ class Controller:
         self.hand_controller.data_queue.put("END")
         hand_thread.join()
 
+        # Take the last 30 seconds worth of data
         for joint in test_data.keys():
             test_data[joint] = test_data[joint][-150:]
+
         test_data_df = pd.DataFrame(test_data)
 
+        # Set the file save path to the test_data directory
         file_path = os.path.realpath(os.path.dirname(__file__)).replace("\\", "/")
         slash_indices = [i for i, c in enumerate(file_path) if c == "/"]
-        file_path = file_path[:slash_indices[-3]]
+        file_path = file_path[: slash_indices[-3]]
+
+        # Create the test_data directory if it does not exist
         if not os.path.exists(f"{file_path}/test_data"):
             os.mkdir(f"{file_path}/test_data")
 
+        # Save the DataFrame as a CSV
         test_data_df.to_csv(
-            f"{file_path}/test_data/{self.hand_controller.nb_fingers}-fingers-pose{pose}-angle{angle}.csv", index=False
+            f"{file_path}/test_data/{self.hand_controller.nb_fingers}-fingers-pose{pose}-angle{angle}.csv",
+            index=False,
         )

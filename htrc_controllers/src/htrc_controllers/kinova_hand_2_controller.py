@@ -2,10 +2,11 @@
 
 import numpy as np
 import rospy
+from std_srvs.srv import Empty
 import sys
 from trajectory_msgs.msg import JointTrajectory
 from trajectory_msgs.msg import JointTrajectoryPoint
-from std_srvs.srv import Empty
+from typing import List
 
 from htrc_framework.base_robot_controllers import BaseHandController
 from htrc_framework.webcam_controller import HAND_LANDMARKS
@@ -14,10 +15,14 @@ from htrc_framework.webcam_controller import HAND_LANDMARKS
 class HandController(BaseHandController):
     def __init__(self, nb_fingers: int) -> None:
         super().__init__(nb_fingers)
-        self.prefix = None
-        self.nb_joints = None
+        self.prefix: str = None
+        self.nb_joints: int = None
 
-    def set_required_landmarks(self):
+    def set_required_landmarks(self) -> None:
+        """
+        Set the required landmarks for the controller.
+        """
+
         self.required_landmarks = [
             HAND_LANDMARKS.INDEX_FINGER_MCP,
             HAND_LANDMARKS.INDEX_FINGER_PIP,
@@ -28,28 +33,21 @@ class HandController(BaseHandController):
             HAND_LANDMARKS.WRIST,
         ]
 
-    def argument_parser(self):
-        # """Argument parser"""
-        # parser = argparse.ArgumentParser(
-        #     description="Drive robot joint to command position"
-        # )
-        # parser.add_argument(
-        #     "kinova_robotType",
-        #     metavar="kinova_robotType",
-        #     type=str,
-        #     default="j2n6a300",
-        #     help="kinova_RobotType is in format of: [{j|m|r|c}{1|2}{s|n}{4|6|7}{s|a}{2|3}{0}{0}]. eg: j2n6a300 refers to jaco v2 6DOF assistive 3fingers. Please be noted that not all options are valided for different robot types.",
-        # )
-        # # args_ = parser.parse_args(argument)
-        # argv = rospy.myargv()
-        # args_ = parser.parse_args(argv[1:])
-        # self.prefix = args_.kinova_robotType
-        # self.nb_joints = int(args_.kinova_robotType[3])
+    def argument_parser(self) -> None:
+        """
+        Set the prefix and number of joints from the robot type argument when running the file.
+        """
 
         self.prefix = sys.argv[1]
         self.nb_joints = int(self.prefix[3])
 
-    def move_joint(self, jointcmds):
+    def move_joint(self, jointcmds: List[int]):
+        """
+        Move the robot arm joints.
+        Code has been adapted from:
+        https://github.com/Kinovarobotics/kinova-ros/blob/melodic-devel/kinova_control/src/move_robot.py
+        """
+
         topic_name = "/" + self.prefix + "/effort_joint_trajectory_controller/command"
         pub = rospy.Publisher(topic_name, JointTrajectory, queue_size=1)
         jointCmd = JointTrajectory()
@@ -70,7 +68,12 @@ class HandController(BaseHandController):
             count = count + 1
             rate.sleep()
 
-    def move_fingers(self, jointcmds):
+    def move_fingers(self, jointcmds: List[int]) -> None:
+        """
+        Move the robot finger joints.
+        Code has been adapted from:
+        https://github.com/Kinovarobotics/kinova-ros/blob/melodic-devel/kinova_control/src/move_robot.py
+        """
         topic_name = "/" + self.prefix + "/effort_finger_trajectory_controller/command"
         pub = rospy.Publisher(topic_name, JointTrajectory, queue_size=1)
         jointCmd = JointTrajectory()
@@ -85,20 +88,24 @@ class HandController(BaseHandController):
             point.effort.append(0)
 
         jointCmd.points.append(point)
-        # rate = rospy.Rate(100)
-        # count = 0
-        # while count < 500:
-        pub.publish(jointCmd)
-        # count = count + 1
-        # rate.sleep()
 
-    def move_to_start_pose(self):
+        pub.publish(jointCmd)
+
+    def move_to_start_pose(self) -> None:
+        """
+        Moves the robot to the starting pose at the beginning of the program.
+        Code has been adapted from:
+        https://github.com/Kinovarobotics/kinova-ros/blob/melodic-devel/kinova_control/src/move_robot.py
+        """
+
         self.argument_parser()
 
+        # Handle Gazebo robot model physics
         rospy.wait_for_service("/gazebo/unpause_physics")
         unpause_gazebo = rospy.ServiceProxy("/gazebo/unpause_physics", Empty)
         resp = unpause_gazebo()
 
+        # Move robot arm to starting pose
         if self.nb_joints == 6:
             self.move_joint([0.0, 2.9, 1.3, 4.2, 1.4, 3.0])
         else:
@@ -106,16 +113,21 @@ class HandController(BaseHandController):
 
         rospy.sleep(5)
 
+        # Move fingers to starting pose
         self.move_fingers([0, 0])
 
-    def publish_move(self):
+    def publish_move(self) -> None:
         while True:
+            # Get data from the queue
             angle_dict = self.data_queue.get()
 
+            # Exit thread if end signal received
             if angle_dict == "END":
                 return
 
+            # If there is data in the queue
             if angle_dict is not None:
+                # Convert the relevant data to radians
                 flex = {
                     "rh_FFJ2": np.radians(angle_dict[HAND_LANDMARKS.INDEX_FINGER_PIP]),
                     "rh_FFJ3": np.radians(angle_dict[HAND_LANDMARKS.INDEX_FINGER_MCP]),
@@ -123,12 +135,15 @@ class HandController(BaseHandController):
                     "rh_THJ3": np.radians(angle_dict[HAND_LANDMARKS.THUMB_MCP]),
                 }
 
+                # Combine the PIP and MCP joints for robot
                 joint_commands = [
                     flex["rh_THJ2"] + flex["rh_THJ3"],
                     flex["rh_FFJ2"] + flex["rh_FFJ3"],
                 ]
 
+                # Set the max angle to avoid self-collision
                 for i in range(2):
                     joint_commands[i] = min(joint_commands[i], 1.2)
 
+                # Move the robot
                 self.move_fingers(joint_commands)

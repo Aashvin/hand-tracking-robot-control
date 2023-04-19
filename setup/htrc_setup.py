@@ -1,12 +1,20 @@
 import os
 import time
 
-print("Please don't close the pop-up window. It will close once finished.")
 
-time.sleep(3)
+def run_setup():
+    print("Please don't close the pop-up window. It will close once finished.")
 
-os.system('chmod +x htrc_setup.sh')
+    time.sleep(3)
 
-os.system('./htrc_setup.sh')
+    # Make the setup shell script executable
+    os.system("chmod +x htrc_setup.sh")
 
-print("Hand Tracking Robot Control setup done!")
+    # Execute the steup shell script
+    os.system("./htrc_setup.sh")
+
+    print("Hand Tracking Robot Control setup done!")
+
+
+if __name__ == "__main__":
+    run_setup()
