@@ -1,29 +1,23 @@
-# Hand-Tracking-Robot-Control
+# Hand-Tracking-Robot-Control (HTRC)
 COMP0138 Final Year Project - Visual Hand Tracking for Teleoperation of Kinematically Unmatched Robotic Systems
 
-
 ## Dependencies
-- Ubuntu 20.04 with ROS Noetic and Gazebo
-- Docker
-- Python 3.8
-- Numpy
-- MediaPipe Solutions Python package
-- cv2 Python package
-- Shadow Robot Dexterous Hand (please ensure launch_hand=false)
-bash <(curl -Ls bit.ly/run-aurora) docker_deploy product=hand_e sim_hand=true container_name=dexterous_hand_simulated tag=noetic-release launch_hand=false nvidia_docker=false reinstall=true
-- Kinova Robots to your catkin workspace
+- Ubuntu 20.04 with [ROS Noetic Desktop-Full Install](http://wiki.ros.org/noetic/Installation/Ubuntu)
+- [Docker](https://docs.docker.com/get-docker/)
+- Python 3.8 (installed with ROS Noetic)
+- [NumPy](https://pypi.org/project/numpy/)
+- [MediaPipe Solutions](https://pypi.org/project/mediapipe/) Python package
+- [Shadow Robot Dexterous Hand Simulation](https://shadow-robot-company-dexterous-hand.readthedocs-hosted.com/en/latest/user_guide/sim_gazebo.html) (please ensure launch_hand=false)
+- Clone [Kinova ROS](https://github.com/Kinovarobotics/kinova-ros/tree/noetic-devel) to your catkin workspace
 
 ### If running the evaluation notebooks:
-- Pandas
-- Seaborn
+- [Pandas](https://pypi.org/project/pandas/)
+- [Seaborn](https://pypi.org/project/seaborn/)
 
 ## Setup
-Start Docker
-`docker TODO CHECK COMMAND`
-
-Clone this repository to your catkin workspace:
-`cd <path-to-catkin_ws>/src`
-`git clone TODO THIS REPO`
+Clone the HTRC repository to your catkin workspace:
+``cd <path-to-catkin_ws>/src``
+``git clone TODO THIS REPO``
 
 Make and source your catkin workspace:
 `cd <path-to-catkin_ws>`
