@@ -17,26 +17,32 @@ COMP0138 Final Year Project - Visual Hand Tracking for Teleoperation of Kinemati
 ## Setup
 Clone the HTRC repository to your catkin workspace:
 
-`cd <path-to-catkin_ws>/src`
-`git clone TODO THIS REPO`
+```
+cd <path-to-catkin_ws>/src
+git clone https://github.com/Aashvin/hand-tracking-robot-control
+```
 
 Make and source your catkin workspace:
-`cd <path-to-catkin_ws>`
-`catkin_make`
-`source devel/setup.bash`
+
+```
+cd <path-to-catkin_ws>
+catkin_make
+source devel/setup.bash
+```
 
 Run the HTRC setup Python script:
-`cd <path-to-catkin_ws>/src/hand-tracking-robot-control/setup`
-`python3 htrc_setup.py`
+
+```
+cd <path-to-catkin_ws>/src/hand-tracking-robot-control/setup
+python3 htrc_setup.py
+```
 
 ## Running the Program
 
 ### Shadow Robots
 
-Start Docker
-`docker TODO CHECK COMMAND`
-
 Start the Shadow Robot Docker container:
+
 `docker start dexterous_hand_simulated`
 
 The rest should be executed in the container window.
@@ -44,30 +50,37 @@ The rest should be executed in the container window.
 #### One Hand
 
 In one tab, start the hand simulation:
+
 `roslaunch sr_robot_launch srhand.launch sim:=true`
 
 After Gazebo and RVIZ have loaded, in another tab run:
+
 `rosrun htrc_control sr_5_finger_hand.py`
 
 #### Two Hands
 
 In one tab, start the two handed simulation:
+
 `roslaunch sr_robot_launch sr_bimanual.launch sim:=true`
 
 After Gazebo and RVIZ have loaded, in another tab run:
+
 `rosrun htrc_control sr_2_hands.py`
 
 #### Hand and Arm
 
 In one tab, start the hand and arm simulation:
+
 `roslaunch sr_robot_launch sr_right_ur10arm_hand.launch sim:=true`
 
 After Gazebo and RVIZ have loaded, in another tab run:
+
 `rosrun htrc_control sr_arm_hand.py`
 
 ### Kinova Robots
 
-Open two terminals or tabs and source your catkin workspace in both (include both the Kinova Robot packages and HTRC packages):
+Open two terminals or tabs and source your catkin workspace in both:
+
 `source <path-to-catkin_ws>/devel/setup.bash`
 
 The below robot types are supported by HTRC:
@@ -81,14 +94,17 @@ If the robot type ends in '300', it has 3 fingers. If it ends in '200', it has 2
 In the commands below, replace <robot_type> with one of the above robot types. Keet the robot consistent in both commands below.
 
 In one terminal, start the simulation:
+
 `roslaunch kinova_gazebo robot_launch.launch kinova_robotType:=<robot_type>`
 
 In the second terminal, start HTRC with one of the following commands.
 
 If you've chosen a 3-fingered robot, run:
+
 `rosrun htrc_control kinova_hand_3.py <robot_type>`
 
 If you've chosen a 2-fingered robot, run:
+
 `rosrun htrc_control kinova_hand_2.py <robot_type>`
 
 ## Ending the Program
@@ -97,3 +113,56 @@ Click on the CV2 window that displays the webcam and finger angles. Press ESC to
 
 ## Running the Test Programs
 
+### Shadow Robots
+
+Start the Shadow Robot Docker container:
+
+`docker start dexterous_hand_simulated`
+
+The rest should be executed in the container window.
+
+#### Hand Rotation Experiments
+
+In one tab, start the hand simulation:
+
+`roslaunch sr_robot_launch srhand.launch sim:=true`
+
+After Gazebo and RVIZ have loaded, in another tab run:
+
+`rosrun htrc_control sr_test_hand.py <pose> <angle>`
+
+Note that <Pose> is the integer ID of the pose (1-7 already exist), and <angle> is the rotation of the hand in degrees where negative values indicate clockwise and positive values indicate clockwise. Running this with a pose and angle combination that exists already will overwrite the current data file associated with it.
+
+### Refresh Rate Experiments
+
+In one tab, start the hand and arm test environment simulation:
+
+`roslaunch sr_robot_launch test_launch.launch sim:=true start_home:=true`
+
+After Gazebo and RVIZ have loaded, in another tab run:
+
+`rosrun htrc_control sr_test_arm.py <refresh_rate>`
+
+Note that <refresh_rate> is the desired refresh rate for the experiment in Hz. Running this with a refresh rate that already exists will create another trial file for the desired refresh rate.
+
+### Kinova Robots
+
+Open two terminals or tabs and source your catkin workspace in both:
+
+`source <path-to-catkin_ws>/devel/setup.bash`
+
+In one terminal, start the simulation:
+
+`roslaunch kinova_gazebo robot_launch.launch kinova_robotType:=<robot_type>`
+
+In the second terminal, start HTRC with one of the following commands.
+
+If you've chosen a 3-fingered robot, run:
+
+`rosrun htrc_control kinova_test_hand_3.py <robot_type> <pose> <angle>`
+
+If you've chosen a 2-fingered robot, run:
+
+`rosrun htrc_control kinova_test_hand_2.py <robot_type> <pose> <angle>`
+
+Note that <Pose> is the integer ID of the pose (1-7 already exist), and <angle> is the rotation of the hand in degrees where negative values indicate clockwise and positive values indicate clockwise. Running this with a pose and angle combination that exists already will overwrite the current data file associated with it.
