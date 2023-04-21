@@ -18,7 +18,6 @@ COMP0138 Final Year Project - Visual Hand Tracking for Teleoperation of Kinemati
 Clone the HTRC repository to your catkin workspace:
 
 `cd <path-to-catkin_ws>/src`
-
 `git clone TODO THIS REPO`
 
 Make and source your catkin workspace:
