@@ -111,7 +111,7 @@ If you've chosen a 2-fingered robot, run:
 
 Click on the CV2 window that displays the webcam and finger angles. Press ESC to exit the program.
 
-## Running the Test Programs
+## Running the Experiment Programs
 
 ### Shadow Robots
 
@@ -133,7 +133,7 @@ After Gazebo and RVIZ have loaded, in another tab run:
 
 Note that <Pose> is the integer ID of the pose (1-7 already exist), and <angle> is the rotation of the hand in degrees where negative values indicate clockwise and positive values indicate clockwise. Running this with a pose and angle combination that exists already will overwrite the current data file associated with it.
 
-### Refresh Rate Experiments
+#### Refresh Rate Experiments
 
 In one tab, start the hand and arm test environment simulation:
 
@@ -145,7 +145,11 @@ After Gazebo and RVIZ have loaded, in another tab run:
 
 Note that <refresh_rate> is the desired refresh rate for the experiment in Hz. Running this with a refresh rate that already exists will create another trial file for the desired refresh rate.
 
+Once the robot has moved to its starting pose, press SPACE to start the experiment and ESC to finish the experiment.
+
 ### Kinova Robots
+
+#### Hand Rotation Experiments
 
 Open two terminals or tabs and source your catkin workspace in both:
 
@@ -166,3 +170,13 @@ If you've chosen a 2-fingered robot, run:
 `rosrun htrc_control kinova_test_hand_2.py <robot_type> <pose> <angle>`
 
 Note that <Pose> is the integer ID of the pose (1-7 already exist), and <angle> is the rotation of the hand in degrees where negative values indicate clockwise and positive values indicate clockwise. Running this with a pose and angle combination that exists already will overwrite the current data file associated with it.
+
+## Ending the Experiment Programs
+
+Click on the CV2 window that displays the webcam and finger angles. Press ESC to exit the program.
+
+The relevant data is saved to the `hand-tracking-robot-control/test_data/` directory under the name of the experiment that was performed.
+
+## Running the Analysis Notebooks
+
+Make sure the relevant dependencies are installed. Each notebook can then be run, and the pose for the `n_finger_analysis.ipynb` can be adjusted to show different data.
