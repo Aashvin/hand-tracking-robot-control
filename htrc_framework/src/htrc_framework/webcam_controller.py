@@ -101,8 +101,6 @@ class WebcamController:
         Create a dictionary of dictionaries of each landmark coordinate by axis.
         """
 
-        print(results)
-
         landmark_data = {
             "x": {landmark: results[landmark].x for landmark in required_landmarks},
             "y": {landmark: results[landmark].y for landmark in required_landmarks},
