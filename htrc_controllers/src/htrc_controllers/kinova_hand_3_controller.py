@@ -99,8 +99,11 @@ class HandController(BaseHandController):
     def move_to_start_pose(self) -> None:
         """
         Moves the robot to the starting pose at the beginning of the program.
+
         Code has been adapted from:
-        https://github.com/Kinovarobotics/kinova-ros/blob/melodic-devel/kinova_control/src/move_robot.py
+        URL: https://github.com/Kinovarobotics/kinova-ros/blob/kinetic-devel/kinova_control/src/move_robot.py
+        Publisher: Kinova Robotics
+        Date accessed: 20/04/2023
         """
 
         self.argument_parser()

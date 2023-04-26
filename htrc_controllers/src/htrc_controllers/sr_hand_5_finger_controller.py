@@ -22,8 +22,8 @@ class HandController(BaseHandController):
             self.prefix = "lh"
         else:
             raise ValueError(
-                "Please use 'name=right_hand' or 'name=left_hand' to set a joint prefix.",
-                "The hand will not be contraollable otherwise.",
+                "Please use 'name=right_hand' or 'name=left_hand' to set a joint prefix.\n \
+                The hand will not be controllable otherwise."
             )
 
         self.commander: SrHandCommander = SrHandCommander(name=name)
