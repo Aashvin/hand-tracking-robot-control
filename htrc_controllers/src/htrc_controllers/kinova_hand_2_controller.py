@@ -44,8 +44,11 @@ class HandController(BaseHandController):
     def move_joint(self, jointcmds: List[int]):
         """
         Move the robot arm joints.
+
         Code has been adapted from:
-        https://github.com/Kinovarobotics/kinova-ros/blob/melodic-devel/kinova_control/src/move_robot.py
+        URL: https://github.com/Kinovarobotics/kinova-ros/blob/kinetic-devel/kinova_control/src/move_robot.py
+        Publisher: Kinova Robotics
+        Date accessed: 20/04/2023
         """
 
         topic_name = "/" + self.prefix + "/effort_joint_trajectory_controller/command"
@@ -71,8 +74,11 @@ class HandController(BaseHandController):
     def move_fingers(self, jointcmds: List[int]) -> None:
         """
         Move the robot finger joints.
+        
         Code has been adapted from:
-        https://github.com/Kinovarobotics/kinova-ros/blob/melodic-devel/kinova_control/src/move_robot.py
+        URL: https://github.com/Kinovarobotics/kinova-ros/blob/kinetic-devel/kinova_control/src/move_robot.py
+        Publisher: Kinova Robotics
+        Date accessed: 20/04/2023
         """
         topic_name = "/" + self.prefix + "/effort_finger_trajectory_controller/command"
         pub = rospy.Publisher(topic_name, JointTrajectory, queue_size=1)

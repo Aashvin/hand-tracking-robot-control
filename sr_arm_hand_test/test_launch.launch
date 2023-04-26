@@ -1,3 +1,16 @@
+<!--
+Software License Agreement (BSD License)
+Copyright © 2022-2023 belongs to Shadow Robot Company Ltd.
+All rights reserved.
+-->
+
+<!--
+Code has been adapted from:
+URL: https://github.com/shadow-robot/sr_interface/blob/noetic-devel/sr_robot_launch/launch/sr_right_ur10arm_hand.launch
+Publisher: Shadow Robot
+Date accessed: 20/04/2023
+-->
+
 <launch>
   <!-- This launch file is for the right ur10 arm and a shadow hand -->
 

@@ -1,3 +1,8 @@
+# Code has been adapted from:
+# URL: https://github.com/Kinovarobotics/kinova-ros/blob/noetic-devel/kinova_control/config/j2n7s300_control.yaml
+# Publisher: Kinova Robotics
+# Date accessed: 20/04/2023
+
 j2n7s200:
   effort_finger_trajectory_controller:
     constraints:
