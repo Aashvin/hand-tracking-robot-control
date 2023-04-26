@@ -1,5 +1,5 @@
 # Hand-Tracking-Robot-Control (HTRC)
-COMP0138 Final Year Project - Visual Hand Tracking for Teleoperation of Kinematically Unmatched Robotic Systems
+COMP0138 Final Year Project - Resilient Teleoperation of Kinematically Unmatched Robotic Systems by Visual Hand Tracking
 
 ## Dependencies
 - Ubuntu 20.04 with [ROS Noetic Desktop-Full Install](http://wiki.ros.org/noetic/Installation/Ubuntu)
