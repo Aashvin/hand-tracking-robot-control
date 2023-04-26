@@ -22,6 +22,8 @@ cd <path-to-catkin_ws>/src
 git clone https://github.com/Aashvin/hand-tracking-robot-control
 ```
 
+Download the [MediaPipe Hands model bundle](https://developers.google.com/mediapipe/solutions/vision/hand_landmarker/index#models) and place it in the `hand-tracking-robot-control/htrc_framework/src/htrc_framework` directory.
+
 Make and source your catkin workspace:
 
 ```
